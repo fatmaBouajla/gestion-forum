@@ -1,0 +1,44 @@
+<!-- src/app/features/coordinatrice/dashboard/coord-dashboard.component.html -->
+<app-layout title="Espace Coordinatrice" subtitle="Supervision transverse du Forum ENICarthage">
+
+  <!-- Alertes critiques -->
+  <div class="alertes-block" *ngIf="alertes.length > 0">
+    <div class="alerte-item" *ngFor="let a of alertes" [ngClass]="a.type">
+      <span>{{ a.type === 'danger' ? '🚨' : '⚠️' }}</span>
+      <span>{{ a.msg }}</span>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid" *ngIf="kpis">
+    <app-stat-card icon="📊" [value]="kpis.avancementGlobal+'%'" label="Avancement global" sub="Toutes tâches" color="blue"></app-stat-card>
+    <app-stat-card icon="✅" [value]="kpis.tachesTerminees"       label="Tâches terminées" sub="Sur {{ kpis.totalTaches }}" color="green"></app-stat-card>
+    <app-stat-card icon="⏰" [value]="kpis.tachesEnRetard"        label="En retard"         sub="Action urgente" color="red"></app-stat-card>
+    <app-stat-card icon="🎓" [value]="kpis.totalWorkshops"        label="Workshops"          sub="{{ kpis.workshopsValides }} validés" color="amber"></app-stat-card>
+  </div>
+
+  <!-- Raccourcis -->
+  <div class="shortcuts-grid">
+    <a routerLink="/coordinatrice/taches" class="shortcut-card blue">
+      <span class="sc-icon">✅</span>
+      <span class="sc-label">Gérer les tâches</span>
+      <span class="sc-arrow">→</span>
+    </a>
+    <a routerLink="/coordinatrice/workshops" class="shortcut-card amber">
+      <span class="sc-icon">🎓</span>
+      <span class="sc-label">Valider workshops</span>
+      <span class="sc-arrow">→</span>
+    </a>
+    <a routerLink="/coordinatrice/comites" class="shortcut-card green">
+      <span class="sc-icon">📋</span>
+      <span class="sc-label">Voir les comités</span>
+      <span class="sc-arrow">→</span>
+    </a>
+    <a routerLink="/coordinatrice/planning" class="shortcut-card purple">
+      <span class="sc-icon">📅</span>
+      <span class="sc-label">Planning global</span>
+      <span class="sc-arrow">→</span>
+    </a>
+  </div>
+
+</app-layout>

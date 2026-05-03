@@ -1,0 +1,33 @@
+<aside class="sidebar" [class.collapsed]="collapsed">
+  <!-- Profile -->
+  <div class="sb-profile">
+    <div class="sb-avatar">{{ initials }}</div>
+    <div class="sb-info" *ngIf="!collapsed">
+      <div class="sb-name">{{ user?.nom }}</div>
+      <div class="sb-role">{{ roleLabel }}</div>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <nav class="sb-nav">
+    <a class="sb-item"
+       *ngFor="let item of navItems"
+       [routerLink]="item.route"
+       [class.active]="isActive(item.route)">
+      <span class="sb-ico">{{ item.icon }}</span>
+      <span class="sb-label" *ngIf="!collapsed">{{ item.label }}</span>
+      <span class="sb-badge" *ngIf="item.badge && item.badge > 0 && !collapsed">{{ item.badge }}</span>
+    </a>
+  </nav>
+
+  <!-- Bottom -->
+  <div class="sb-bottom">
+    <button class="sb-item logout-btn" (click)="logout()">
+      <span class="sb-ico">⎋</span>
+      <span class="sb-label" *ngIf="!collapsed">Déconnexion</span>
+    </button>
+    <button class="collapse-btn" (click)="collapsed = !collapsed" title="Réduire">
+      <span>{{ collapsed ? '→' : '←' }}</span>
+    </button>
+  </div>
+</aside>

@@ -1,0 +1,134 @@
+<!-- src/app/features/coordinatrice/taches/coord-taches.component.html -->
+<app-layout title="Tâches — Vue globale" subtitle="Supervision et création de toutes les tâches">
+
+  <div class="toolbar">
+    <div class="filters-row">
+      <div class="filter-tabs">
+        <button class="tab-btn" *ngFor="let s of statuts"
+                [class.active]="filterStatut === s" (click)="filterStatut = s">
+          {{ s === 'TOUS' ? 'Tous' : (s | statut) }}
+          <span class="tab-count">{{ countByStatut(s) }}</span>
+        </button>
+      </div>
+      <select class="filter-select" [(ngModel)]="filterComite">
+        <option value="TOUS">Tous les comités</option>
+        <option *ngFor="let c of uniqueComites" [value]="c">{{ c }}</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" (click)="openCreate()">+ Nouvelle tâche</button>
+  </div>
+
+  <div class="loading-state" *ngIf="loading">⏳ Chargement...</div>
+
+  <div class="card" *ngIf="!loading">
+    <div class="table-meta">{{ filtered.length }} tâche(s)</div>
+    <table class="data-table">
+      <thead>
+        <tr><th>Tâche</th><th>Comité</th><th>Assignée à</th><th>Échéance</th><th>Priorité</th><th>Statut</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let t of filtered" [class.retard-row]="t.statut === 'EN_RETARD'">
+          <td>
+            <div class="task-title">{{ t.titre }}</div>
+            <div class="task-desc" *ngIf="t.description">{{ t.description }}</div>
+          </td>
+          <td><span class="comite-chip">{{ t.comiteNom || '—' }}</span></td>
+          <td class="text-muted">{{ t.membreNom || '—' }}</td>
+          <td><span class="date-chip" [class.overdue]="t.statut === 'EN_RETARD'">{{ t.dateFin | date:'dd/MM/yyyy' }}</span></td>
+          <td><app-statut-badge [statut]="t.priorite"></app-statut-badge></td>
+          <td>
+            <select class="statut-select" [value]="t.statut"
+                    (change)="changerStatut(t, $any($event.target).value)">
+              <option value="A_FAIRE">À faire</option>
+              <option value="EN_COURS">En cours</option>
+              <option value="TERMINEE">Terminée</option>
+              <option value="EN_RETARD">En retard</option>
+            </select>
+          </td>
+          <td><button class="action-btn edit" (click)="openEdit(t)" title="Modifier">✏</button></td>
+        </tr>
+        <tr *ngIf="filtered.length === 0">
+          <td colspan="7" class="empty-row">Aucune tâche pour ce filtre</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- MODAL -->
+  <div class="modal-overlay" *ngIf="showModal" (click)="showModal = false">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-hd">
+        <h3>{{ editMode ? 'Modifier' : 'Créer' }} une tâche</h3>
+        <button class="modal-close" (click)="showModal = false">✕</button>
+      </div>
+      <form [formGroup]="form" (ngSubmit)="save()">
+        <div class="modal-body">
+
+          <div class="alert-error" *ngIf="errorMsg">⚠ {{ errorMsg }}</div>
+
+          <div class="field" [class.error]="f['titre'].touched && f['titre'].invalid">
+            <label>Titre *</label>
+            <input type="text" formControlName="titre" placeholder="Intitulé de la tâche">
+            <span class="field-error" *ngIf="f['titre'].touched && f['titre'].invalid">Requis</span>
+          </div>
+          <div class="field">
+            <label>Description</label>
+            <textarea formControlName="description" rows="2" placeholder="Détails..."></textarea>
+          </div>
+          <div class="form-row">
+            <div class="field" [class.error]="f['dateDebut'].touched && f['dateDebut'].invalid">
+              <label>Date début *</label>
+              <input type="date" formControlName="dateDebut">
+            </div>
+            <div class="field" [class.error]="f['dateFin'].touched && f['dateFin'].invalid">
+              <label>Date limite *</label>
+              <input type="date" formControlName="dateFin">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label>Priorité</label>
+              <select formControlName="priorite">
+                <option value="NORMALE">Normale</option>
+                <option value="URGENTE">Urgente</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Statut</label>
+              <select formControlName="statut">
+                <option value="A_FAIRE">À faire</option>
+                <option value="EN_COURS">En cours</option>
+                <option value="TERMINEE">Terminée</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field" [class.error]="f['comiteId'].touched && f['comiteId'].invalid">
+              <label>Comité *</label>
+              <select formControlName="comiteId">
+                <option [ngValue]="null">Sélectionner...</option>
+                <option *ngFor="let c of comites" [value]="c.id">{{ c.nom }}</option>
+              </select>
+              <span class="field-error" *ngIf="f['comiteId'].touched && f['comiteId'].invalid">Requis</span>
+            </div>
+            <div class="field">
+              <label>Membre assigné</label>
+              <select formControlName="membreId">
+                <option [ngValue]="null">Non assigné</option>
+                <option *ngFor="let m of membres" [value]="m.id">{{ m.nom }}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-ft">
+          <button type="button" class="btn btn-outline" (click)="showModal = false" [disabled]="saving">Annuler</button>
+          <button type="submit" class="btn btn-primary" [disabled]="saving">
+            <span *ngIf="!saving">{{ editMode ? 'Sauvegarder' : 'Créer' }}</span>
+            <span *ngIf="saving" class="spinner"></span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</app-layout>

@@ -1,0 +1,84 @@
+.sidebar {
+  width: 250px;
+  background: #0F172A;
+  height: 100vh;
+  position: fixed; top: 0; left: 0;
+  display: flex; flex-direction: column;
+  padding: 16px 10px;
+  z-index: 100;
+  transition: width .25s ease;
+  overflow: hidden;
+
+  &.collapsed {
+    width: 68px;
+    .sb-label, .sb-badge, .sb-info { display: none; }
+    .sb-item { justify-content: center; padding: 10px; }
+    .sb-profile { justify-content: center; padding: 8px; }
+    .collapse-btn { width: 100%; }
+  }
+}
+
+.sb-profile {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(255,255,255,.07);
+  border-radius: 12px; padding: 10px 12px;
+  margin-bottom: 20px; flex-shrink: 0;
+}
+
+.sb-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: #1E40AF;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800; color: white;
+  flex-shrink: 0;
+}
+
+.sb-name { font-size: 13px; font-weight: 700; color: #FFFFFF; white-space: nowrap; }
+.sb-role { font-size: 10px; font-weight: 600; color: #60A5FA; text-transform: uppercase; letter-spacing: .06em; margin-top: 2px; }
+
+.sb-nav { flex: 1; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: 2px; }
+
+.sb-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: 10px;
+  font-size: 13px; font-weight: 500; color: #94A3B8;
+  cursor: pointer; text-decoration: none;
+  transition: all .15s; white-space: nowrap;
+  border: none; width: 100%; background: none;
+
+  &:hover { background: rgba(255,255,255,.08); color: #FFFFFF; }
+  &.active { background: #1E40AF; color: #FFFFFF; font-weight: 700; }
+}
+
+.sb-ico { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+
+.sb-badge {
+  margin-left: auto; background: #EF4444;
+  color: white; font-size: 10px; font-weight: 700;
+  min-width: 18px; height: 18px;
+  border-radius: 50px; display: flex; align-items: center; justify-content: center;
+  padding: 0 5px;
+}
+
+.sb-bottom {
+  padding-top: 12px; border-top: 1px solid rgba(255,255,255,.08);
+  flex-shrink: 0; display: flex; flex-direction: column; gap: 4px;
+}
+
+.logout-btn { color: #F87171 !important; }
+
+.collapse-btn {
+  display: flex; align-items: center; justify-content: flex-end;
+  padding: 6px 8px;
+  background: none; border: none; cursor: pointer;
+  color: #475569; font-size: 14px;
+  border-radius: 8px; transition: all .15s;
+  &:hover { background: rgba(255,255,255,.06); color: #94A3B8; }
+}
+
+@media (max-width: 900px) {
+  .sidebar {
+    transform: translateX(-100%);
+    &.mobile-open { transform: translateX(0); }
+  }
+}

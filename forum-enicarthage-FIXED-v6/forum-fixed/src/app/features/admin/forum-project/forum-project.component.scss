@@ -1,0 +1,76 @@
+/* src/app/features/admin/forum-project/forum-project.component.scss */
+.toolbar { display:flex;justify-content:space-between;align-items:center;margin-bottom:22px; }
+.toolbar-info { font-size:13px;color:#64748B;font-weight:600; }
+
+.btn { display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:10px;font-family:inherit;font-size:13px;font-weight:700;border:none;cursor:pointer;transition:all .2s; }
+.btn-sm { padding:7px 14px;font-size:12px; }
+.btn-primary { background:#1E40AF;color:white;&:hover{background:#1D3899;} }
+.btn-outline  { background:white;border:1.5px solid #E2E8F0;color:#334155;&:hover{background:#F8FAFC;} }
+.btn-danger   { background:#EF4444;color:white;&:hover{background:#DC2626;} }
+
+.projects-list { display:flex;flex-direction:column;gap:16px; }
+
+.project-card {
+  background:#FFFFFF;border:1px solid #E2E8F0;border-radius:16px;
+  display:flex;overflow:hidden;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+  transition:box-shadow .2s;
+  &.current { border-color:#BFDBFE;box-shadow:0 0 0 3px rgba(30,64,175,.07); }
+  &:hover { box-shadow:0 4px 16px rgba(0,0,0,.08); }
+}
+
+.project-side {
+  width:80px;flex-shrink:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:16px 8px;
+  .project-year { font-size:20px;font-weight:800;color:#0F172A;font-family:'Syne',sans-serif; }
+  .project-statut { font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#64748B;margin-top:4px;text-align:center; }
+  &.encours { background:#DBEAFE; .project-year{color:#1E40AF;} }
+  &.planif  { background:#EDE9FE; .project-year{color:#5B21B6;} }
+  &.cloture { background:#F1F5F9; .project-year{color:#475569;} }
+}
+
+.project-body { flex:1;padding:18px 22px; }
+.project-top { display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;
+  h3 { font-size:15px;font-weight:800;color:#0F172A;font-family:'Syne',sans-serif;margin-bottom:4px; }
+  .project-desc { font-size:12.5px;color:#64748B;line-height:1.4; }
+}
+
+.project-badge {
+  padding:4px 12px;border-radius:50px;font-size:11px;font-weight:700;white-space:nowrap;
+  &.encours { background:#DBEAFE;color:#1E40AF; }
+  &.planif  { background:#EDE9FE;color:#5B21B6; }
+  &.cloture { background:#F1F5F9;color:#475569; }
+}
+
+.project-meta-row { display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px; }
+.meta-chip {
+  padding:4px 12px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:50px;
+  font-size:12px;color:#475569;
+  &.accent { background:#EFF6FF;border-color:#BFDBFE;color:#1E40AF; }
+}
+
+.project-actions { display:flex;align-items:center;gap:10px; }
+.archived-label { font-size:12px;color:#94A3B8;font-style:italic; }
+
+/* MODAL */
+.modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px; }
+.modal { background:white;border-radius:20px;width:100%;max-width:560px;box-shadow:0 20px 60px rgba(0,0,0,.2); }
+.modal-hd { display:flex;align-items:center;justify-content:space-between;padding:20px 24px 0;
+  h3{font-size:17px;font-weight:800;color:#0F172A;} }
+.modal-close { background:none;border:none;cursor:pointer;font-size:16px;color:#94A3B8;&:hover{background:#F1F5F9;border-radius:6px;} }
+.modal-body { padding:20px 24px;display:flex;flex-direction:column;gap:14px; }
+.modal-ft { padding:16px 24px;border-top:1px solid #F1F5F9;display:flex;justify-content:flex-end;gap:10px; }
+.form-row { display:grid;grid-template-columns:1fr 1fr;gap:14px; }
+.field {
+  label{display:block;font-size:12px;font-weight:700;color:#334155;margin-bottom:5px;}
+  input,select,textarea { width:100%;padding:9px 12px;border:1.5px solid #E2E8F0;border-radius:10px;font-family:inherit;font-size:13px;color:#0F172A;background:#F8FAFC;transition:border-color .2s;resize:vertical;
+    &:focus{outline:none;border-color:#1E40AF;background:white;} }
+  &.error input{border-color:#EF4444;}
+}
+.field-error { font-size:11px;color:#EF4444;margin-top:4px;display:block; }
+
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .6s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.alert-error{background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:10px 14px;font-size:13px;color:#DC2626;margin-bottom:4px;}
+.loading-state{padding:40px;text-align:center;color:#94A3B8;}
+.empty-state{padding:60px;text-align:center;color:#94A3B8;font-size:14px;background:#FFFFFF;border:1px solid #E2E8F0;border-radius:16px;}

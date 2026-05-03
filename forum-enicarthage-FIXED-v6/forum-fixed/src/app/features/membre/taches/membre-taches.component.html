@@ -1,0 +1,113 @@
+<!-- src/app/features/membre/taches/membre-taches.component.html -->
+<app-layout title="Mes Tâches" subtitle="Consulter et mettre à jour l'avancement de mes tâches">
+
+  <!-- Filtres -->
+  <div class="filter-tabs" style="margin-bottom:20px;">
+    <button class="tab-btn" *ngFor="let s of allFilters"
+            [class.active]="filterStatut === s"
+            (click)="filterStatut = s">
+      {{ s === 'TOUS' ? 'Toutes' : (s | statut) }}
+      <span class="tab-count">{{ countByStatut(s) }}</span>
+    </button>
+  </div>
+
+  <div class="loading-state" *ngIf="loading">Chargement...</div>
+
+  <!-- Liste tâches -->
+  <div class="taches-list" *ngIf="!loading">
+    <div class="tache-card" *ngFor="let t of filtered"
+         [class.retard]="t.statut === 'EN_RETARD'"
+         [class.urgente]="t.priorite === 'URGENTE'">
+
+      <div class="tc-side" [ngClass]="t.statut.toLowerCase().replace('_','-')"></div>
+
+      <div class="tc-body">
+        <div class="tc-top">
+          <div>
+            <h3 class="tc-titre">{{ t.titre }}</h3>
+            <p class="tc-desc">{{ t.description }}</p>
+          </div>
+          <div class="tc-badges">
+            <app-statut-badge [statut]="t.priorite"></app-statut-badge>
+            <app-statut-badge [statut]="t.statut"></app-statut-badge>
+          </div>
+        </div>
+
+        <div class="tc-meta-row">
+          <span class="tc-meta-chip">📋 {{ t.comiteNom }}</span>
+          <span class="tc-meta-chip" [class.danger]="t.statut === 'EN_RETARD'">
+            📅 Échéance : {{ t.dateFin | date:'dd/MM/yyyy' }}
+          </span>
+          <span class="tc-meta-chip" *ngIf="t.commentaires?.length">
+            💬 {{ t.commentaires!.length }} commentaire(s)
+          </span>
+        </div>
+
+        <div class="tc-actions">
+          <!-- Bouton avancer statut -->
+          <button class="btn btn-primary btn-sm"
+                  *ngIf="t.statut !== 'TERMINEE'"
+                  [disabled]="updatingStatut === t.id"
+                  (click)="changerStatut(t, nextStatut(t.statut))">
+            {{ t.statut === 'A_FAIRE' ? '▶ Démarrer' : t.statut === 'EN_COURS' ? '✅ Marquer terminée' : '↩ Reprendre' }}
+          </button>
+          <button class="btn btn-outline btn-sm" (click)="openDetail(t)">
+            💬 Commentaires ({{ t.commentaires?.length || 0 }})
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="filtered.length === 0">
+      🎉 Aucune tâche pour ce filtre.
+    </div>
+  </div>
+
+  <!-- Detail + Commentaires panel -->
+  <div class="modal-overlay" *ngIf="showDetail && selectedTache" (click)="showDetail = false">
+    <div class="detail-panel" (click)="$event.stopPropagation()">
+      <div class="modal-hd">
+        <h3>{{ selectedTache.titre }}</h3>
+        <button class="modal-close" (click)="showDetail = false">✕</button>
+      </div>
+
+      <div class="detail-body">
+        <p class="detail-desc">{{ selectedTache.description }}</p>
+
+        <div class="detail-meta">
+          <div class="dm-row"><span class="dm-label">Statut</span><app-statut-badge [statut]="selectedTache.statut"></app-statut-badge></div>
+          <div class="dm-row"><span class="dm-label">Priorité</span><app-statut-badge [statut]="selectedTache.priorite"></app-statut-badge></div>
+          <div class="dm-row"><span class="dm-label">Comité</span><span>{{ selectedTache.comiteNom }}</span></div>
+          <div class="dm-row"><span class="dm-label">Échéance</span><span>{{ selectedTache.dateFin | date:'dd/MM/yyyy' }}</span></div>
+        </div>
+
+        <!-- Commentaires -->
+        <div class="comments-section">
+          <div class="comments-title">💬 Commentaires</div>
+          <div class="comments-list">
+            <div class="comment-item" *ngFor="let c of selectedTache.commentaires">
+              <div class="comment-av">{{ c.auteurNom[0] }}</div>
+              <div class="comment-body">
+                <div class="comment-header">
+                  <span class="comment-author">{{ c.auteurNom }}</span>
+                  <span class="comment-date">{{ c.dateCreation | date:'dd/MM HH:mm' }}</span>
+                </div>
+                <div class="comment-text">{{ c.contenu }}</div>
+              </div>
+            </div>
+            <div class="no-comments" *ngIf="!selectedTache.commentaires?.length">Aucun commentaire.</div>
+          </div>
+
+          <!-- Nouveau commentaire -->
+          <form [formGroup]="commentForm" (ngSubmit)="addComment()" class="comment-form">
+            <textarea formControlName="contenu" rows="2" placeholder="Ajouter un commentaire..."></textarea>
+            <button type="submit" class="btn btn-primary btn-sm" [disabled]="submittingComment || commentForm.invalid">
+              {{ submittingComment ? '...' : 'Envoyer' }}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</app-layout>

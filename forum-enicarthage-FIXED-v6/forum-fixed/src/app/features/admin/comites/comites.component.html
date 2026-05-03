@@ -1,0 +1,118 @@
+<!-- src/app/features/admin/comites/comites.component.html -->
+<app-layout title="Comités" subtitle="Gestion des 6 comités du Forum ENICarthage">
+
+  <div class="toolbar">
+    <span class="section-count">{{ comites.length }} comité(s)</span>
+    <button class="btn btn-primary" (click)="openCreate()">+ Nouveau comité</button>
+  </div>
+
+  <div class="loading-state" *ngIf="loading">⏳ Chargement...</div>
+
+  <div class="comites-grid" *ngIf="!loading">
+    <div class="comite-card" *ngFor="let c of comites">
+      <div class="comite-header" [style.background]="colorByNom(c.nom)">
+        <div class="comite-icon">{{ iconByNom(c.nom) }}</div>
+        <div class="comite-actions">
+          <button class="action-btn" (click)="openEdit(c)" title="Modifier">✏</button>
+          <button class="action-btn danger" (click)="confirmDel(c.id)" title="Supprimer">🗑</button>
+        </div>
+      </div>
+      <div class="comite-body">
+        <h3 class="comite-nom">Comité {{ c.nom }}</h3>
+        <p class="comite-desc">{{ c.description }}</p>
+        <div class="comite-meta">
+          <div class="meta-item" *ngIf="c.chef">
+            <span>👑</span><span>{{ c.chef.nom }}</span>
+          </div>
+          <div class="meta-item" *ngIf="c.forumProject">
+            <span>🏛</span><span>{{ c.forumProject.nom }}</span>
+          </div>
+        </div>
+        <div class="comite-progress" *ngIf="c.avancement !== undefined && c.avancement !== null">
+          <div class="progress-head">
+            <span>Avancement</span>
+            <span class="progress-pct">{{ c.avancement }}%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill"
+                 [style.width.%]="c.avancement"
+                 [class.low]="c.avancement < 50"
+                 [class.mid]="c.avancement >= 50 && c.avancement < 80"
+                 [class.high]="c.avancement >= 80"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL -->
+  <div class="modal-overlay" *ngIf="showModal" (click)="showModal = false">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-hd">
+        <h3>{{ editMode ? 'Modifier' : 'Créer' }} un comité</h3>
+        <button class="modal-close" (click)="showModal = false">✕</button>
+      </div>
+      <form [formGroup]="form" (ngSubmit)="save()">
+        <div class="modal-body">
+
+          <div class="alert-error" *ngIf="errorMsg">⚠ {{ errorMsg }}</div>
+
+          <div class="field" [class.error]="f['nom'].touched && f['nom'].invalid">
+            <label>Nom du comité *</label>
+            <select formControlName="nom">
+              <option value="">Sélectionner...</option>
+              <option *ngFor="let n of nomsComites" [value]="n">{{ n }}</option>
+            </select>
+            <span class="field-error" *ngIf="f['nom'].touched && f['nom'].invalid">Requis</span>
+          </div>
+
+          <div class="field" [class.error]="f['description'].touched && f['description'].invalid">
+            <label>Description *</label>
+            <textarea formControlName="description" rows="3" placeholder="Responsabilités du comité..."></textarea>
+            <span class="field-error" *ngIf="f['description'].touched && f['description'].invalid">Requis</span>
+          </div>
+
+          <div class="field" [class.error]="f['forumProjectId'].touched && f['forumProjectId'].invalid">
+            <label>Forum Project *</label>
+            <select formControlName="forumProjectId">
+              <option [ngValue]="null">Sélectionner un projet...</option>
+              <option *ngFor="let p of projects" [value]="p.id">{{ p.nom }} ({{ p.edition }})</option>
+            </select>
+            <span class="field-error" *ngIf="f['forumProjectId'].touched && f['forumProjectId'].invalid">Requis — créez d'abord un Forum Project</span>
+          </div>
+
+          <div class="field">
+            <label>Chef de comité <span class="label-hint">(doit avoir le rôle CHEF_COMITE)</span></label>
+            <select formControlName="chefId">
+              <option [ngValue]="null">Non assigné</option>
+              <option *ngFor="let u of users" [value]="u.id">{{ u.nom }} — {{ u.email }}</option>
+            </select>
+            <div class="field-hint" *ngIf="users.length === 0">
+              ⚠ Aucun utilisateur avec le rôle CHEF_COMITE trouvé. Créez-en un d'abord.
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-ft">
+          <button type="button" class="btn btn-outline" (click)="showModal = false" [disabled]="saving">Annuler</button>
+          <button type="submit" class="btn btn-primary" [disabled]="saving">
+            <span *ngIf="!saving">{{ editMode ? 'Sauvegarder' : 'Créer' }}</span>
+            <span *ngIf="saving" class="spinner"></span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <app-confirm-modal
+    [open]="confirmDelete"
+    title="Supprimer le comité"
+    message="Toutes les tâches associées seront supprimées. Cette action est irréversible."
+    confirmLabel="Supprimer"
+    icon="⚠"
+    [danger]="true"
+    (confirm)="doDelete()"
+    (cancel)="confirmDelete = false">
+  </app-confirm-modal>
+
+</app-layout>

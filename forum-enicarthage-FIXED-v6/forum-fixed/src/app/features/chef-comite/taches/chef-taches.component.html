@@ -1,0 +1,129 @@
+<!-- src/app/features/chef-comite/taches/chef-taches.component.html -->
+<app-layout title="Tâches du Comité" subtitle="Créer, assigner et suivre les tâches de mon comité">
+
+  <div class="toolbar">
+    <div class="filter-tabs">
+      <button class="tab-btn" *ngFor="let s of statuts"
+              [class.active]="filterStatut === s"
+              (click)="filterStatut = s">
+        {{ s === 'TOUS' ? 'Tous' : (s | statut) }}
+        <span class="tab-count">{{ countByStatut(s) }}</span>
+      </button>
+    </div>
+    <button class="btn btn-primary" (click)="openCreate()">+ Nouvelle tâche</button>
+  </div>
+
+  <div class="loading-state" *ngIf="loading">Chargement...</div>
+
+  <!-- Kanban-style cards -->
+  <div class="taches-grid" *ngIf="!loading">
+    <div class="tache-card" *ngFor="let t of filtered"
+         [class.urgente]="t.priorite === 'URGENTE'"
+         [class.retard]="t.statut === 'EN_RETARD'">
+
+      <div class="tc-header">
+        <app-statut-badge [statut]="t.priorite"></app-statut-badge>
+        <div class="tc-actions">
+          <button class="action-btn edit" (click)="openEdit(t)" title="Modifier">✏</button>
+          <button class="action-btn delete" (click)="confirmDel(t.id)" title="Supprimer">🗑</button>
+        </div>
+      </div>
+
+      <h3 class="tc-titre">{{ t.titre }}</h3>
+      <p class="tc-desc" *ngIf="t.description">{{ t.description }}</p>
+
+      <div class="tc-meta">
+        <div class="tc-membre" *ngIf="t.membreNom">
+          <div class="membre-av">{{ t.membreNom[0] }}</div>
+          <span>{{ t.membreNom }}</span>
+        </div>
+        <span class="tc-date" [class.overdue]="t.statut === 'EN_RETARD'">
+          📅 {{ t.dateFin | date:'dd/MM/yy' }}
+        </span>
+      </div>
+
+      <div class="tc-footer">
+        <app-statut-badge [statut]="t.statut"></app-statut-badge>
+        <select class="statut-mini" [value]="t.statut"
+                (change)="changerStatut(t, $any($event.target).value)">
+          <option value="A_FAIRE">À faire</option>
+          <option value="EN_COURS">En cours</option>
+          <option value="TERMINEE">Terminée</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="empty-grid" *ngIf="filtered.length === 0">
+      Aucune tâche pour ce filtre.
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" *ngIf="showModal" (click)="showModal = false">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-hd">
+        <h3>{{ editMode ? 'Modifier' : 'Créer' }} une tâche</h3>
+        <button class="modal-close" (click)="showModal = false">✕</button>
+      </div>
+      <form [formGroup]="form" (ngSubmit)="save()">
+        <div class="modal-body">
+          <div class="alert-error" *ngIf="errorMsg">⚠ {{ errorMsg }}</div>
+          <div class="field" [class.error]="f['titre'].touched && f['titre'].invalid">
+            <label>Titre *</label>
+            <input type="text" formControlName="titre" placeholder="Intitulé de la tâche">
+            <span class="field-error" *ngIf="f['titre'].touched && f['titre'].invalid">Requis</span>
+          </div>
+          <div class="field">
+            <label>Description</label>
+            <textarea formControlName="description" rows="2" placeholder="Détails..."></textarea>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label>Date début *</label>
+              <input type="date" formControlName="dateDebut">
+            </div>
+            <div class="field">
+              <label>Date limite *</label>
+              <input type="date" formControlName="dateFin">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label>Priorité</label>
+              <select formControlName="priorite">
+                <option value="NORMALE">Normale</option>
+                <option value="URGENTE">Urgente</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Assigner à</label>
+              <select formControlName="membreId">
+                <option [ngValue]="null">Non assigné</option>
+                <option *ngFor="let m of membres" [value]="m.id">{{ m.nom }}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-ft">
+          <button type="button" class="btn btn-outline" (click)="showModal = false">Annuler</button>
+          <button type="submit" class="btn btn-primary" [disabled]="saving">
+            <span *ngIf="!saving">{{ editMode ? 'Sauvegarder' : 'Créer' }}</span>
+            <span *ngIf="saving" class="spinner"></span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <app-confirm-modal
+    [open]="confirmDelete"
+    title="Supprimer la tâche"
+    message="Cette tâche sera définitivement supprimée."
+    confirmLabel="Supprimer"
+    icon="🗑"
+    [danger]="true"
+    (confirm)="doDelete()"
+    (cancel)="confirmDelete = false">
+  </app-confirm-modal>
+
+</app-layout>

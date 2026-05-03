@@ -1,0 +1,97 @@
+<!-- src/app/features/chef-comite/dashboard/chef-dashboard.component.html -->
+<app-layout [title]="'Bonjour, ' + userName + ' 👋'" subtitle="Espace Chef de Comité">
+
+  <!-- PAS ENCORE ASSIGNÉ -->
+  <div class="not-assigned" *ngIf="!comiteLoading && !comite">
+    <div class="na-icon">🏗</div>
+    <h3>Vous n'êtes pas encore chef d'un comité</h3>
+    <p>L'administrateur doit vous assigner comme chef d'un comité. Contactez-le pour plus d'informations.</p>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading-state" *ngIf="comiteLoading">
+    <div class="spinner-lg"></div>
+    <span>Chargement de votre comité...</span>
+  </div>
+
+  <!-- COMITÉ CHARGÉ -->
+  <ng-container *ngIf="!comiteLoading && comite">
+
+    <!-- Banner dynamique -->
+    <div class="comite-banner">
+      <div class="banner-icon">{{ comiteIcon(comite.nom) }}</div>
+      <div class="banner-info">
+        <h2>Comité {{ comite.nom }}</h2>
+        <p>{{ comite.description }}</p>
+      </div>
+      <div class="banner-stats">
+        <div class="bstat">
+          <div class="bstat-val">{{ taches.length }}</div>
+          <div class="bstat-lbl">Tâches</div>
+        </div>
+        <div class="bstat">
+          <div class="bstat-val">{{ avancement }}%</div>
+          <div class="bstat-lbl">Avancement</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mini KPIs -->
+    <div class="mini-kpis">
+      <div class="mini-card blue">  <div class="mini-val">{{ aFaire }}</div>   <div class="mini-lbl">À faire</div>   </div>
+      <div class="mini-card amber"> <div class="mini-val">{{ enCours }}</div>  <div class="mini-lbl">En cours</div>  </div>
+      <div class="mini-card green"> <div class="mini-val">{{ terminees }}</div><div class="mini-lbl">Terminées</div> </div>
+      <div class="mini-card red">   <div class="mini-val">{{ enRetard }}</div> <div class="mini-lbl">En retard</div> </div>
+    </div>
+
+    <div class="two-col">
+      <!-- Dernières tâches -->
+      <div class="card">
+        <div class="card-hd">Tâches récentes</div>
+        <div class="card-sub">Dernières tâches de votre comité</div>
+        <div class="empty-list" *ngIf="!loading && taches.length === 0">
+          Aucune tâche pour l'instant. <a routerLink="/chef-comite/taches">Créer une tâche →</a>
+        </div>
+        <div class="tache-list">
+          <div class="tache-item" *ngFor="let t of dernieresToughes" [class.retard]="t.statut === 'EN_RETARD'">
+            <div class="tache-dot" [ngClass]="dotClass(t.statut)"></div>
+            <div class="tache-body">
+              <div class="tache-titre">{{ t.titre }}</div>
+              <div class="tache-meta">
+                <span>{{ t.membreNom || 'Non assigné' }}</span>
+                <span>·</span>
+                <span [class.text-red]="t.statut === 'EN_RETARD'">{{ t.dateFin | date:'dd/MM/yyyy' }}</span>
+              </div>
+            </div>
+            <app-statut-badge [statut]="t.statut"></app-statut-badge>
+          </div>
+        </div>
+        <a routerLink="/chef-comite/taches" class="card-link">Voir toutes les tâches →</a>
+      </div>
+
+      <!-- Raccourcis -->
+      <div class="card">
+        <div class="card-hd">Actions rapides</div>
+        <div class="card-sub">Navigation vers vos espaces</div>
+        <div class="shortcuts">
+          <a routerLink="/chef-comite/taches" class="shortcut-item blue">
+            <span class="sc-icon">✅</span>
+            <div><div class="sc-title">Gérer les tâches</div><div class="sc-sub">Créer, assigner, suivre</div></div>
+            <span class="sc-arrow">→</span>
+          </a>
+          <a routerLink="/chef-comite/membres" class="shortcut-item green">
+            <span class="sc-icon">👥</span>
+            <div><div class="sc-title">Gérer les membres</div><div class="sc-sub">Accepter/refuser adhésions</div></div>
+            <span class="sc-arrow">→</span>
+          </a>
+          <a routerLink="/chef-comite/comite" class="shortcut-item purple">
+            <span class="sc-icon">📋</span>
+            <div><div class="sc-title">Mon comité</div><div class="sc-sub">Détails et progression</div></div>
+            <span class="sc-arrow">→</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </ng-container>
+</app-layout>

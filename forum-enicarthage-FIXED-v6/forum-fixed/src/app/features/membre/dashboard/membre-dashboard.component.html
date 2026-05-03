@@ -1,0 +1,70 @@
+<!-- src/app/features/membre/dashboard/membre-dashboard.component.html -->
+<app-layout [title]="'Bonjour, ' + userName + ' 👋'" subtitle="Votre espace membre du Forum ENICarthage">
+
+  <!-- Mini KPIs -->
+  <div class="mini-kpis">
+    <div class="mini-card blue">
+      <div class="mini-val">{{ tachesEnCours.length }}</div>
+      <div class="mini-lbl">En cours</div>
+    </div>
+    <div class="mini-card amber">
+      <div class="mini-val">{{ tachesUrgentes.length }}</div>
+      <div class="mini-lbl">Urgentes</div>
+    </div>
+    <div class="mini-card green">
+      <div class="mini-val">{{ tachesTerminees }}</div>
+      <div class="mini-lbl">Terminées</div>
+    </div>
+    <div class="mini-card red">
+      <div class="mini-val">{{ tachesEnRetard }}</div>
+      <div class="mini-lbl">En retard</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+
+    <!-- Tâches urgentes -->
+    <div class="card">
+      <div class="card-hd">🔥 Tâches urgentes</div>
+      <div class="card-sub">Nécessitent votre attention immédiate</div>
+      <div class="tache-list">
+        <div class="tache-item" *ngFor="let t of tachesUrgentes" [class.retard]="t.statut === 'EN_RETARD'">
+          <div class="tache-left">
+            <div class="tache-badge" [class.urgente]="t.priorite === 'URGENTE'">🔥</div>
+            <div>
+              <div class="tache-titre">{{ t.titre }}</div>
+              <div class="tache-meta">
+                {{ t.comiteNom }} · Échéance {{ t.dateFin | date:'dd/MM/yyyy' }}
+              </div>
+            </div>
+          </div>
+          <app-statut-badge [statut]="t.statut"></app-statut-badge>
+        </div>
+        <div class="empty-list" *ngIf="tachesUrgentes.length === 0">
+          ✅ Aucune tâche urgente !
+        </div>
+      </div>
+      <a routerLink="/membre/taches" class="card-link">Voir toutes mes tâches →</a>
+    </div>
+
+    <!-- Notifications récentes -->
+    <div class="card">
+      <div class="card-hd">🔔 Notifications récentes</div>
+      <div class="card-sub">Dernières activités vous concernant</div>
+      <div class="notif-list">
+        <div class="notif-item" *ngFor="let n of notifications" [class.unread]="!n.lu">
+          <div class="notif-icon">{{ typeIcon(n.type) }}</div>
+          <div class="notif-body">
+            <div class="notif-msg">{{ n.message }}</div>
+            <div class="notif-date">{{ n.dateEnvoi | date:'dd/MM HH:mm' }}</div>
+          </div>
+          <div class="notif-dot" *ngIf="!n.lu"></div>
+        </div>
+        <div class="empty-list" *ngIf="notifications.length === 0">Aucune notification.</div>
+      </div>
+      <a routerLink="/membre/notifications" class="card-link">Voir toutes les notifications →</a>
+    </div>
+
+  </div>
+
+</app-layout>

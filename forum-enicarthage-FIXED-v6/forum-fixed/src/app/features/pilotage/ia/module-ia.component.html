@@ -1,0 +1,48 @@
+<!-- src/app/features/pilotage/ia/module-ia.component.html -->
+<app-layout title="Module IA" subtitle="Classement automatique des candidatures par intelligence artificielle">
+
+  <div class="ia-header">
+    <div class="ia-banner">
+      <div class="ia-icon">🤖</div>
+      <div>
+        <div class="ia-title">Moteur de scoring IA</div>
+        <div class="ia-desc">Analyse automatique des CVs et classement par pertinence avec justification</div>
+      </div>
+    </div>
+    <button class="btn btn-ia" (click)="analyserTous()" [disabled]="analysing">
+      <span *ngIf="!analysing">⚡ Analyser tous les CVs</span>
+      <span *ngIf="analysing">⏳ Analyse en cours...</span>
+    </button>
+  </div>
+
+  <!-- Classement -->
+  <div class="ranking-list">
+    <div class="rank-card" *ngFor="let c of candidatures; let i = index">
+      <div class="rank-pos" [class.gold]="i===0" [class.silver]="i===1" [class.bronze]="i===2">
+        #{{ i+1 }}
+      </div>
+
+      <div class="rank-avatar">{{ c.candidatNom[0] }}</div>
+
+      <div class="rank-info">
+        <div class="rank-nom">{{ c.candidatNom }}</div>
+        <div class="rank-poste">{{ c.posteVise }}</div>
+        <div class="rank-justif">💬 {{ justification(c) }}</div>
+      </div>
+
+      <div class="rank-score-wrap">
+        <div class="rank-score-circle"
+             [style.background]="scoreBg(c.scoreIA)"
+             [style.color]="scoreColor(c.scoreIA)">
+          <span class="score-num">{{ c.scoreIA }}</span>
+          <span class="score-unit">/100</span>
+        </div>
+      </div>
+
+      <div class="rank-statut">
+        <app-statut-badge [statut]="c.statut"></app-statut-badge>
+      </div>
+    </div>
+  </div>
+
+</app-layout>

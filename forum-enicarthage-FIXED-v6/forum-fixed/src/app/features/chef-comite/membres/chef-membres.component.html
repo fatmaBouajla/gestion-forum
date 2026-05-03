@@ -1,0 +1,99 @@
+<app-layout title="Membres du Comité" subtitle="Gérer les adhésions et l'équipe">
+
+  <p class="alert-hint" *ngIf="errorMsg">{{ errorMsg }}</p>
+
+  <!-- MEMBRES ACTIFS -->
+  <div class="section-head">
+    <h3>Membres actifs <span class="count">{{ membres.length }}</span></h3>
+  </div>
+  <div class="membres-grid">
+    <div class="membre-card" *ngFor="let m of membres">
+      <div class="mc-avatar">{{ initials(m.nom) }}</div>
+      <div class="mc-info">
+        <div class="mc-nom">{{ m.nom }}</div>
+        <div class="mc-email">{{ m.email }}</div>
+      </div>
+      <div class="mc-actions">
+        <button class="action-btn delete" (click)="retirer(m.id)" title="Retirer">✕</button>
+      </div>
+    </div>
+    <div class="empty-membres" *ngIf="membres.length === 0">Aucun membre dans ce comité.</div>
+  </div>
+
+  <!-- DEMANDES EN ATTENTE -->
+  <div class="section-head" style="margin-top:28px;">
+    <h3>Demandes d'adhésion <span class="count amber">{{ demandesEnAttente.length }}</span></h3>
+  </div>
+
+  <div class="demandes-list">
+    <div class="demande-card" *ngFor="let d of demandesEnAttente"
+         [class.selected]="selectedDemande?.id === d.id">
+      <div class="dc-avatar">{{ initials(d.candidatNom || '?') }}</div>
+      <div class="dc-info">
+        <div class="dc-nom clickable" (click)="selectDemande(d)">
+          {{ d.candidatNom || 'Inconnu' }}
+        </div>
+        <div class="dc-email">{{ d.candidatEmail || '' }}</div>
+        <div class="dc-score" *ngIf="d.scoreIA != null">
+          Score IA : <strong>{{ d.scoreIA }}/100</strong>
+        </div>
+      </div>
+      <div class="dc-actions">
+        <button class="btn btn-success btn-sm" (click)="accepter(d)">✅ Accepter</button>
+        <button class="btn btn-danger btn-sm" (click)="refuser(d)">❌ Refuser</button>
+      </div>
+    </div>
+    <div class="empty-demandes" *ngIf="demandesEnAttente.length === 0">
+      Aucune demande en attente.
+    </div>
+  </div>
+
+  <!-- PANNEAU DÉTAIL -->
+  <div class="detail-panel" *ngIf="selectedDemande || detailLoading || detailError">
+    <div class="detail-header">
+      <div class="detail-avatar">{{ initials(selectedDemande?.candidatNom || '?') }}</div>
+      <div>
+        <h3>{{ selectedDemande?.candidatNom || 'Détails de la candidature' }}</h3>
+        <p>{{ selectedDemande?.candidatEmail || 'Chargement en cours...' }}</p>
+      </div>
+      <button class="modal-close" (click)="closeDemande()">✕</button>
+    </div>
+
+    <div class="detail-body" *ngIf="detailLoading">
+      <p>Chargement des détails…</p>
+    </div>
+
+    <div class="detail-body" *ngIf="detailError">
+      <p class="alert-hint">{{ detailError }}</p>
+      <button class="btn btn-outline btn-sm" (click)="closeDemande()">Fermer</button>
+    </div>
+
+    <div class="detail-body" *ngIf="selectedDemande && !detailLoading && !detailError">
+      <div class="detail-row" *ngFor="let item of parseDossier(selectedDemande.dossierComplet)">
+        <span class="detail-label">{{ item.label }}</span>
+        <span class="detail-value">{{ item.value }}</span>
+      </div>
+      <div class="detail-row" *ngIf="selectedDemande.scoreIA != null">
+        <span class="detail-label">Score IA</span>
+        <span class="detail-value"><strong>{{ selectedDemande.scoreIA }} / 100</strong></span>
+      </div>
+      <div class="detail-row" *ngIf="selectedDemande.justificationIA">
+        <span class="detail-label">Analyse IA</span>
+        <span class="detail-value">{{ selectedDemande.justificationIA }}</span>
+      </div>
+      <div class="detail-row" *ngIf="selectedDemande.competencesExtraites">
+        <span class="detail-label">Compétences détectées</span>
+        <span class="detail-value">{{ selectedDemande.competencesExtraites }}</span>
+      </div>
+    </div>
+
+    <div class="detail-footer" *ngIf="selectedDemande && !detailLoading && !detailError">
+      <button class="btn btn-outline btn-sm" (click)="telechargerCV(selectedDemande.id)">
+        📄 Télécharger CV
+      </button>
+      <button class="btn btn-success btn-sm" (click)="accepter(selectedDemande)">✅ Accepter</button>
+      <button class="btn btn-danger btn-sm" (click)="refuser(selectedDemande)">❌ Refuser</button>
+    </div>
+  </div>
+
+</app-layout>

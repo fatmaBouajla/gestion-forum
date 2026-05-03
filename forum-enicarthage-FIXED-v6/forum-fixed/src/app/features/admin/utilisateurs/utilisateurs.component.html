@@ -1,0 +1,128 @@
+<!-- src/app/features/admin/utilisateurs/utilisateurs.component.html -->
+<app-layout title="Utilisateurs" subtitle="Gestion des comptes et des rôles">
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" [(ngModel)]="search" placeholder="Rechercher un utilisateur...">
+    </div>
+    <select [(ngModel)]="filterRole" class="filter-select">
+      <option value="">Tous les rôles</option>
+      <option *ngFor="let r of roles" [value]="r.value">{{ r.label }}</option>
+    </select>
+    <button class="btn btn-primary" (click)="openCreate()">+ Ajouter un utilisateur</button>
+  </div>
+
+  <!-- Table -->
+  <div class="card">
+    <div class="table-info">{{ filtered.length }} utilisateur(s)</div>
+    <div class="loading-row" *ngIf="loading">⏳ Chargement...</div>
+    <table class="data-table" *ngIf="!loading">
+      <thead>
+        <tr>
+          <th>Utilisateur</th><th>Email</th><th>Rôle</th><th>Statut</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let u of filtered">
+          <td>
+            <div class="user-cell">
+              <div class="user-avatar">{{ initials(u.nom) }}</div>
+              <span>{{ u.nom }}</span>
+            </div>
+          </td>
+          <td class="text-muted">{{ u.email }}</td>
+          <td><app-statut-badge [statut]="u.role"></app-statut-badge></td>
+          <td>
+            <span class="status-chip" [class.active]="u.actif" [class.inactive]="!u.actif">
+              {{ u.actif ? '✅ Actif' : '❌ Inactif' }}
+            </span>
+          </td>
+          <td>
+            <div class="actions">
+              <button class="action-btn edit"   (click)="openEdit(u)"          title="Modifier">✏</button>
+              <button class="action-btn toggle" (click)="toggleActif(u)"       title="{{ u.actif ? 'Désactiver' : 'Activer' }}">{{ u.actif ? '🔒' : '🔓' }}</button>
+              <button class="action-btn delete" (click)="confirmDeleteUser(u.id)" title="Supprimer">🗑</button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="filtered.length === 0">
+          <td colspan="5" class="empty-row">Aucun utilisateur trouvé</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ========== MODAL CRÉER / MODIFIER ========== -->
+  <div class="modal-overlay" *ngIf="showModal" (click)="showModal = false">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-hd">
+        <h3>{{ editMode ? 'Modifier' : 'Créer' }} un utilisateur</h3>
+        <button class="modal-close" (click)="showModal = false">✕</button>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="save()">
+        <div class="modal-body">
+
+          <!-- Message d'erreur backend -->
+          <div class="alert-error" *ngIf="errorMsg">
+            <span>⚠</span> {{ errorMsg }}
+          </div>
+
+          <div class="field" [class.error]="f['nom'].touched && f['nom'].invalid">
+            <label>Nom complet *</label>
+            <input type="text" formControlName="nom" placeholder="Prénom Nom">
+            <span class="field-error" *ngIf="f['nom'].touched && f['nom'].errors?.['required']">Requis</span>
+          </div>
+
+          <div class="field" [class.error]="f['email'].touched && f['email'].invalid">
+            <label>Email *</label>
+            <input type="email" formControlName="email" placeholder="email@enicarthage.tn" [attr.autocomplete]="'off'">
+            <span class="field-error" *ngIf="f['email'].touched && f['email'].errors?.['email']">Email invalide</span>
+          </div>
+
+          <div class="field" [class.error]="f['motDePasse'].touched && f['motDePasse'].invalid">
+            <label>Mot de passe {{ editMode ? '(laisser vide pour conserver)' : '*' }}</label>
+            <input type="password" formControlName="motDePasse"
+                   [placeholder]="editMode ? 'Laisser vide pour ne pas modifier' : 'Min. 6 caractères'"
+                   [attr.autocomplete]="'new-password'">
+            <span class="field-error" *ngIf="!editMode && f['motDePasse'].touched && f['motDePasse'].errors?.['required']">Requis</span>
+          </div>
+
+          <div class="field">
+            <label>Rôle *</label>
+            <select formControlName="role">
+              <option *ngFor="let r of roles" [value]="r.value">{{ r.label }}</option>
+            </select>
+          </div>
+
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="actif"> Compte actif
+          </label>
+        </div>
+
+        <div class="modal-ft">
+          <button type="button" class="btn btn-outline" (click)="showModal = false" [disabled]="saving">Annuler</button>
+          <button type="submit" class="btn btn-primary" [disabled]="saving">
+            <span *ngIf="!saving">{{ editMode ? 'Sauvegarder' : 'Créer' }}</span>
+            <span *ngIf="saving" class="spinner"></span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Confirm Delete -->
+  <app-confirm-modal
+    [open]="confirmDelete"
+    title="Supprimer l'utilisateur"
+    message="Cette action est irréversible."
+    confirmLabel="Supprimer"
+    icon="🗑"
+    [danger]="true"
+    (confirm)="doDelete()"
+    (cancel)="confirmDelete = false">
+  </app-confirm-modal>
+
+</app-layout>

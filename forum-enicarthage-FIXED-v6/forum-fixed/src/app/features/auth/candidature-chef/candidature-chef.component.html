@@ -1,0 +1,160 @@
+<!-- candidature-chef.component.html -->
+<div class="public-page">
+
+  <!-- LEFT -->
+  <div class="public-left">
+    <div class="brand">
+      <div class="brand-logo">FE</div>
+      <span class="brand-name">Forum ENICarthage</span>
+    </div>
+    <div class="left-content">
+      <div class="left-badge">Leadership</div>
+      <h1>Candidatez<br><span class="accent">Chef de Comité</span></h1>
+      <p>Pilotez une équipe et contribuez à l'organisation du plus grand forum de l'école.</p>
+      <div class="left-info-cards">
+        <div class="info-card">
+          <span class="info-icon">👑</span>
+          <div>
+            <div class="info-title">Rôle clé</div>
+            <div class="info-sub">Gérer et motiver une équipe de membres</div>
+          </div>
+        </div>
+        <div class="info-card">
+          <span class="info-icon">📋</span>
+          <div>
+            <div class="info-title">Dossier étudié</div>
+            <div class="info-sub">CV analysé par notre module IA</div>
+          </div>
+        </div>
+        <div class="info-card">
+          <span class="info-icon">✉</span>
+          <div>
+            <div class="info-title">Réponse par email</div>
+            <div class="info-sub">Credentials envoyés si sélectionné</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <a routerLink="/auth/login" class="back-link">← Retour à la connexion</a>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="public-right">
+
+    <!-- SUCCESS -->
+    <div class="success-card" *ngIf="success">
+      <div class="success-icon">✓</div>
+      <h3>Candidature envoyée !</h3>
+      <p>Votre dossier a bien été reçu. Le comité pilotage l'examinera et vous recevrez une réponse par email.</p>
+      <a routerLink="/auth/login" class="btn-back-login">Retour à la connexion</a>
+    </div>
+
+    <div class="form-card" *ngIf="!success">
+      <div class="form-card-header">
+        <h2>Candidature Chef de Comité</h2>
+        <span class="header-badge">Leadership</span>
+      </div>
+
+      <div class="info-banner">
+        Vous avez l'étoffe d'un leader ? Candidatez pour devenir Chef de Comité et pilotez une équipe dans l'organisation du plus grand forum de l'école.
+      </div>
+
+      <div class="alert-error" *ngIf="error">⚠ {{ error }}</div>
+
+      <form [formGroup]="form" (ngSubmit)="submit()">
+
+        <!-- Informations personnelles -->
+        <div class="section-title">Informations personnelles</div>
+
+        <div class="form-row">
+          <div class="field" [class.error]="f['prenom'].touched && f['prenom'].invalid">
+            <label>Prénom *</label>
+            <input type="text" formControlName="prenom" placeholder="Mohamed">
+            <span class="hint">Ex: Mohamed</span>
+            <span class="field-error" *ngIf="f['prenom'].touched && f['prenom'].invalid">Requis</span>
+          </div>
+          <div class="field" [class.error]="f['nom'].touched && f['nom'].invalid">
+            <label>Nom *</label>
+            <input type="text" formControlName="nom" placeholder="Ben Ali">
+            <span class="hint">Ex: Ben Ali</span>
+            <span class="field-error" *ngIf="f['nom'].touched && f['nom'].invalid">Requis</span>
+          </div>
+        </div>
+
+        <div class="field" [class.error]="f['email'].touched && f['email'].invalid">
+          <label>Adresse email *</label>
+          <input type="email" formControlName="email" placeholder="exemple&#64;email.carthage.fr">
+          <span class="hint">exemple&#64;email.carthage.fr</span>
+          <span class="field-error" *ngIf="f['email'].touched && f['email'].invalid">Email invalide</span>
+        </div>
+
+        <div class="form-row">
+          <div class="field" [class.error]="f['telephone'].touched && f['telephone'].invalid">
+            <label>Téléphone *</label>
+            <input type="text" formControlName="telephone" placeholder="+216 XX XXX XXX">
+            <span class="hint">+216 XX XXX XXX</span>
+            <span class="field-error" *ngIf="f['telephone'].touched && f['telephone'].invalid">Format invalide</span>
+          </div>
+          <div class="field" [class.error]="f['niveauEtudes'].touched && f['niveauEtudes'].invalid">
+            <label>Numéro d'études *</label>
+            <select formControlName="niveauEtudes">
+              <option value="">Sélectionnez votre niveau</option>
+              <option *ngFor="let n of niveaux" [value]="n.value">{{ n.label }}</option>
+            </select>
+            <span class="hint">Les chefs sont généralement en 3ème, 4ème ou 5ème année</span>
+            <span class="field-error" *ngIf="f['niveauEtudes'].touched && f['niveauEtudes'].invalid">Requis</span>
+          </div>
+        </div>
+
+        <div class="field" [class.error]="f['comiteSouhaite'].touched && f['comiteSouhaite'].invalid">
+          <label>Comité souhaité *</label>
+          <select formControlName="comiteSouhaite">
+            <option value="">Sélectionnez le comité que vous souhaitez diriger</option>
+            <option *ngFor="let c of comites" [value]="c">{{ c }}</option>
+          </select>
+          <span class="field-error" *ngIf="f['comiteSouhaite'].touched && f['comiteSouhaite'].invalid">Requis</span>
+        </div>
+
+        <!-- Expérience leadership -->
+        <div class="section-title section-title--accent">
+          ⚡ Expérience de leadership
+          <span class="section-badge">Prioritaire</span>
+        </div>
+
+        <div class="field" [class.error]="f['motivation'].touched && f['motivation'].invalid">
+          <label>Pourquoi voulez-vous devenir Chef de Comité ? *</label>
+          <textarea formControlName="motivation" rows="4"
+                    placeholder="Décrivez votre motivation, votre vision pour le comité..."></textarea>
+          <span class="field-error" *ngIf="f['motivation'].touched && f['motivation'].invalid">Requis (min. 50 caractères)</span>
+        </div>
+
+        <div class="field">
+          <label>Expériences en gestion d'équipe ou projets associatifs</label>
+          <textarea formControlName="experience" rows="3"
+                    placeholder="Parlez-nous de vos expériences de leadership (président de club, chef de projet, etc.)"></textarea>
+        </div>
+
+        <!-- CV -->
+        <div class="cv-section">
+          <div class="cv-section-title">Compétences et expériences</div>
+          <div class="field">
+            <label>CV (PDF uniquement) *</label>
+            <div class="file-drop" [class.has-file]="cvFile" (click)="cvInput.click()">
+              <input #cvInput type="file" accept=".pdf" (change)="onCvChange($event)" style="display:none">
+              <span *ngIf="!cvFile">📎 Cliquez pour télécharger votre CV</span>
+              <span *ngIf="cvFile" class="file-name">✓ {{ cvFile.name }}</span>
+              <span class="file-hint">Format PDF accepté, max 5 Mo</span>
+            </div>
+            <span class="field-error" *ngIf="cvError">{{ cvError }}</span>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit" [disabled]="loading">
+          <span *ngIf="!loading">Soumettre ma candidature</span>
+          <span *ngIf="loading" class="spinner"></span>
+        </button>
+
+      </form>
+    </div>
+  </div>
+</div>

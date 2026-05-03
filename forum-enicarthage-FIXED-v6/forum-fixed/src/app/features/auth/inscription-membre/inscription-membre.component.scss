@@ -1,0 +1,29 @@
+// Harmonized with app palette - green accent for membre
+@import '../candidature-chef/candidature-chef.component.scss';
+
+// Override accent color for membre (green instead of orange)
+.public-left {
+  .left-badge {
+    background: rgba(5,150,105,.15);
+    color: #059669;
+  }
+
+  h1 .accent { color: #34D399; }
+}
+
+.form-card-header {
+  border-bottom-color: #059669;
+}
+
+.pub-link.membre:hover {
+  border-color: #6EE7B7;
+  background: #ECFDF5;
+}
+
+.btn-submit {
+  background: #059669;
+  &:hover:not(:disabled) {
+    background: #047857;
+    box-shadow: 0 4px 14px rgba(5,150,105,.3);
+  }
+}

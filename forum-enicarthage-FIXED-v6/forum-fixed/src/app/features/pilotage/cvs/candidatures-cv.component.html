@@ -1,0 +1,190 @@
+<app-layout title="Candidatures CV" subtitle="Analyse et validation des candidatures avec module IA">
+
+  <div class="filter-tabs">
+    <button class="tab-btn" *ngFor="let f of filters"
+            [class.active]="filter === f" (click)="filter = f">
+      {{ f === 'TOUS' ? 'Tous' : (f | statut) }}
+      <span class="tab-count">{{ statutCount(f) }}</span>
+    </button>
+  </div>
+
+  <div class="loading-state" *ngIf="loading">Chargement des candidatures...</div>
+
+  <div class="cv-list">
+    <div class="cv-card" *ngFor="let c of filtered">
+      <div class="cv-left">
+        <div class="cv-avatar">{{ c.candidatNom?.[0] }}</div>
+        <div class="cv-info">
+          <div class="cv-nom">{{ c.candidatNom }}</div>
+          <div class="cv-email">{{ c.candidatEmail }}</div>
+          <div class="cv-poste">{{ c.posteVise }}</div>
+        </div>
+      </div>
+
+      <div class="cv-score" [ngClass]="scoreColor(c.scoreIA)" *ngIf="c.scoreIA">
+        <div class="score-val">{{ c.scoreIA }}</div>
+        <div class="score-lbl">SCORE IA</div>
+      </div>
+
+      <div class="cv-middle">
+        <app-statut-badge [statut]="c.statut"></app-statut-badge>
+        <div class="cv-date">Deposé le {{ c.dateDepot | date:'dd/MM/yyyy' }}</div>
+      </div>
+
+      <div class="cv-actions">
+        <button class="btn-icon info" (click)="openDetail(c)" title="Voir détails">👁</button>
+        <button class="btn-icon ia" (click)="analyserIA(c)" title="Analyser avec IA"
+                [class.loading]="analysing === c.id">
+          {{ analysing === c.id ? '⏳' : '🤖' }}
+        </button>
+        <button class="btn-icon accept" (click)="accepter(c)" title="Accepter"
+                *ngIf="c.statut === 'EN_ATTENTE'">✅</button>
+        <button class="btn-icon reject" (click)="openRefuser(c.id)" title="Refuser"
+                *ngIf="c.statut === 'EN_ATTENTE'">❌</button>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="filtered.length === 0">
+      Aucune candidature pour ce filtre.
+    </div>
+  </div>
+
+  <!-- Detail Panel -->
+  <div class="modal-overlay" *ngIf="showDetail" (click)="showDetail = false">
+    <div class="detail-panel" (click)="$event.stopPropagation()">
+
+      <div class="modal-hd" *ngIf="selected">
+        <h3>Détail — {{ selected.candidatNom }}</h3>
+        <button class="modal-close" (click)="showDetail = false">✕</button>
+      </div>
+
+      <div class="detail-body" *ngIf="detailLoading">
+        <p>Chargement des détails…</p>
+      </div>
+
+      <div class="detail-body" *ngIf="detailError">
+        <p class="alert-hint">{{ detailError }}</p>
+        <button class="btn btn-outline" (click)="showDetail = false">Fermer</button>
+      </div>
+
+      <div class="detail-body" *ngIf="!detailLoading && !detailError && selected">
+
+        <div class="detail-row">
+          <span class="dlabel">Email</span>
+          <span>{{ selected.candidatEmail }}</span>
+        </div>
+
+        <div class="detail-row">
+          <span class="dlabel">Poste visé</span>
+          <span>{{ selected.posteVise }}</span>
+        </div>
+
+        <div class="detail-row">
+          <span class="dlabel">Date dépôt</span>
+          <span>{{ selected.dateDepot | date:'dd/MM/yyyy' }}</span>
+        </div>
+
+        <div class="detail-row">
+          <span class="dlabel">Statut</span>
+          <app-statut-badge [statut]="selected.statut"></app-statut-badge>
+        </div>
+
+        <!-- 🔥 AJOUT DEMANDÉ : dossierComplet -->
+        <div class="detail-section-title" *ngIf="selected.dossierComplet">
+          📋 Dossier complet
+        </div>
+
+        <div class="detail-row"
+             *ngFor="let item of selectedDossierParsed">
+          <span class="dlabel">{{ item.label }}</span>
+          <span>{{ item.value }}</span>
+        </div>
+
+        <div class="detail-section-title">🤖 Analyse IA</div>
+
+        <div class="detail-row" *ngIf="selected.scoreIA">
+          <span class="dlabel">Score IA</span>
+          <span class="score-big" [ngClass]="scoreColor(selected.scoreIA)">
+            {{ selected.scoreIA }}/100
+          </span>
+        </div>
+
+        <div class="detail-row" *ngIf="selected.justificationIA">
+          <span class="dlabel">Justification</span>
+          <span>{{ selected.justificationIA }}</span>
+        </div>
+
+        <div class="detail-row" *ngIf="selected.competencesExtraites">
+          <span class="dlabel">Compétences</span>
+          <span>{{ selected.competencesExtraites }}</span>
+        </div>
+
+        <div class="detail-row" *ngIf="selected.commentaire">
+          <span class="dlabel">Commentaire</span>
+          <span>{{ selected.commentaire }}</span>
+        </div>
+
+        <div class="detail-row">
+          <span class="dlabel">Fichier CV</span>
+          <a class="cv-link" href="#" (click)="telechargerCv(selected, $event)">
+            📄 Télécharger le CV
+          </a>
+        </div>
+
+      </div>
+
+      <div class="modal-ft" *ngIf="selected && !detailLoading && !detailError && selected.statut === 'EN_ATTENTE'">
+        <button class="btn btn-outline" (click)="showDetail = false">Fermer</button>
+        <button class="btn btn-danger" (click)="openRefuser(selected.id); showDetail = false">
+          Refuser
+        </button>
+        <button class="btn btn-success" (click)="accepter(selected); showDetail = false">
+          Accepter
+        </button>
+      </div>
+
+      <div class="modal-ft" *ngIf="selected && !detailLoading && !detailError && selected.statut !== 'EN_ATTENTE'">
+        <button class="btn btn-outline" (click)="showDetail = false">Fermer</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Modal Refus -->
+  <div class="modal-overlay" *ngIf="showRefuserModal" (click)="showRefuserModal = false">
+    <div class="modal" (click)="$event.stopPropagation()">
+
+      <div class="modal-hd">
+        <h3>Motif de refus</h3>
+        <button class="modal-close" (click)="showRefuserModal = false">✕</button>
+      </div>
+
+      <form [formGroup]="commentaireForm" (ngSubmit)="doRefuser()">
+
+        <div class="modal-body">
+          <div class="field">
+            <label>Commentaire *</label>
+            <textarea formControlName="commentaire" rows="4"
+                      placeholder="Expliquez le motif du refus..."></textarea>
+
+            <span class="field-error"
+                  *ngIf="f['commentaire'].touched && f['commentaire'].invalid">
+              Commentaire requis
+            </span>
+          </div>
+        </div>
+
+        <div class="modal-ft">
+          <button type="button" class="btn btn-outline" (click)="showRefuserModal = false">
+            Annuler
+          </button>
+          <button type="submit" class="btn btn-danger">
+            Confirmer le refus
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+</app-layout>

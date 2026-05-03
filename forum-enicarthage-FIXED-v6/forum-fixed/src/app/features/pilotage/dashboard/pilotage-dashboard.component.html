@@ -1,0 +1,64 @@
+<!-- src/app/features/pilotage/dashboard/pilotage-dashboard.component.html -->
+<app-layout title="Supervision Globale" subtitle="Comité Pilotage — Vue d'ensemble du Forum">
+
+  <!-- KPIs -->
+  <div class="kpi-grid" *ngIf="kpis">
+    <app-stat-card icon="📊" [value]="kpis.avancementGlobal + '%'" label="Avancement global" sub="Toutes tâches confondues" color="blue"></app-stat-card>
+    <app-stat-card icon="⏰" [value]="kpis.tachesEnRetard"  label="Tâches en retard"  sub="Action requise"  color="red"></app-stat-card>
+    <app-stat-card icon="📄" [value]="kpis.totalCandidatures" label="Candidatures CV" sub="En attente d'analyse" color="amber"></app-stat-card>
+    <app-stat-card icon="🎓" [value]="kpis.workshopsValides" label="Workshops validés" sub="Sur {{ kpis.totalWorkshops }} proposés" color="green"></app-stat-card>
+  </div>
+
+  <div class="two-col">
+    <!-- Chart avancement stacked -->
+    <div class="card">
+      <div class="card-hd">Avancement par comité</div>
+      <div class="card-sub">Tâches terminées vs restantes</div>
+      <div style="height:260px;position:relative;">
+        <canvas id="chartAv"></canvas>
+      </div>
+    </div>
+
+    <!-- Tâches en retard -->
+    <div class="card">
+      <div class="card-hd alert-hd">⏰ Alertes — Tâches en retard</div>
+      <div class="card-sub">Dernières tâches critiques</div>
+      <div class="empty-block" *ngIf="tachesRetard.length === 0">Aucune tâche en retard 🎉</div>
+      <div class="retard-item" *ngFor="let t of tachesRetard">
+        <div class="retard-dot"></div>
+        <div class="retard-body">
+          <div class="retard-titre">{{ t.titre }}</div>
+          <div class="retard-meta">{{ t.comiteNom }} · Échéance : {{ t.dateFin | date:'dd/MM/yyyy' }}</div>
+        </div>
+        <app-statut-badge statut="EN_RETARD"></app-statut-badge>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table avancement détaillé -->
+  <div class="card" style="margin-top:20px;">
+    <div class="card-hd">Tableau de supervision</div>
+    <table class="data-table">
+      <thead>
+        <tr><th>Comité</th><th>Total tâches</th><th>Terminées</th><th>Avancement</th><th>État</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let a of avancements">
+          <td><strong>{{ a.comiteNom }}</strong></td>
+          <td>{{ a.total }}</td>
+          <td>{{ a.terminees }}</td>
+          <td>
+            <div class="prog-row">
+              <div class="prog-bar"><div class="prog-fill" [style.width.%]="a.avancement" [class.low]="a.avancement<50" [class.mid]="a.avancement>=50&&a.avancement<80" [class.high]="a.avancement>=80"></div></div>
+              <span class="prog-val">{{ a.avancement }}%</span>
+            </div>
+          </td>
+          <td>
+            <app-statut-badge [statut]="a.avancement >= 80 ? 'VALIDE' : a.avancement >= 50 ? 'EN_COURS' : 'EN_RETARD'"></app-statut-badge>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</app-layout>

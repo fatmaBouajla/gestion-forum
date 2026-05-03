@@ -1,0 +1,36 @@
+<header class="topbar">
+  <div class="topbar-left">
+    <h1 class="topbar-title">{{ title }}</h1>
+    <p class="topbar-sub" *ngIf="subtitle">{{ subtitle }}</p>
+  </div>
+
+  <div class="topbar-right">
+    <!-- Notifications -->
+    <div class="notif-wrap" (clickOutside)="showNotifs = false">
+      <button class="icon-btn" (click)="showNotifs = !showNotifs">
+        🔔
+        <span class="notif-pip" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
+      </button>
+
+      <div class="notif-panel" *ngIf="showNotifs">
+        <div class="notif-header">
+          <span>Notifications</span>
+          <button *ngIf="unreadCount > 0" (click)="markAllRead()">Tout lire</button>
+        </div>
+        <div class="notif-empty" *ngIf="notifications.length === 0">Aucune notification</div>
+        <div class="notif-item" *ngFor="let n of notifications" (click)="markRead(n.id)">
+          <span class="notif-icon">{{ typeIcon(n.type) }}</span>
+          <div class="notif-body">
+            <div class="notif-msg">{{ n.message }}</div>
+            <div class="notif-date">{{ n.dateEnvoi | date:'dd/MM HH:mm' }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Avatar -->
+    <div class="user-avatar" [title]="auth.currentUser?.nom ?? ''">
+      {{ userInitials }}
+    </div>
+  </div>
+</header>

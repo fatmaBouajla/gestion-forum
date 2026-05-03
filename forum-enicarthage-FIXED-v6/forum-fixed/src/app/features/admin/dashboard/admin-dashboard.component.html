@@ -1,0 +1,65 @@
+<app-layout title="Dashboard Admin" subtitle="Forum ENICarthage 2025 — Vue globale">
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid" *ngIf="kpis">
+    <app-stat-card icon="👥" [value]="kpis.totalUtilisateurs" label="Utilisateurs" sub="Actifs sur la plateforme" color="blue"></app-stat-card>
+    <app-stat-card icon="✅" [value]="kpis.tachesTerminees + '/' + kpis.totalTaches" label="Tâches terminées" [sub]="tachesPercent + '% d\'avancement'" color="green"></app-stat-card>
+    <app-stat-card icon="⏰" [value]="kpis.tachesEnRetard" label="Tâches en retard" sub="Nécessitent une attention" color="red"></app-stat-card>
+    <app-stat-card icon="🎓" [value]="kpis.workshopsValides + '/' + kpis.totalWorkshops" label="Workshops validés" sub="Événements confirmés" color="amber"></app-stat-card>
+  </div>
+
+  <!-- Charts Row -->
+  <div class="charts-row">
+    <div class="card chart-card">
+      <div class="card-hd">Avancement par comité</div>
+      <div class="card-sub">Progression des 6 comités actifs</div>
+      <div class="chart-wrap" style="height: 240px;">
+        <canvas id="chartComites"></canvas>
+      </div>
+    </div>
+    <div class="card chart-card">
+      <div class="card-hd">Répartition des tâches</div>
+      <div class="card-sub">Par statut — 200 tâches total</div>
+      <div class="chart-wrap" style="height: 240px;">
+        <canvas id="chartTaches"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comités Table -->
+  <div class="card" style="margin-top: 24px;">
+    <div class="card-hd">Tableau de bord des comités</div>
+    <div class="card-sub">Avancement détaillé par comité</div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Comité</th>
+          <th>Tâches totales</th>
+          <th>Terminées</th>
+          <th>Avancement</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let a of avancements">
+          <td><strong>{{ a.comiteNom }}</strong></td>
+          <td>{{ a.total }}</td>
+          <td>{{ a.terminees }}</td>
+          <td>
+            <div class="progress-wrap">
+              <div class="progress-bar">
+                <div class="progress-fill"
+                     [style.width.%]="a.avancement"
+                     [class.low]="a.avancement < 50"
+                     [class.mid]="a.avancement >= 50 && a.avancement < 80"
+                     [class.high]="a.avancement >= 80">
+                </div>
+              </div>
+              <span class="progress-val">{{ a.avancement }}%</span>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</app-layout>
