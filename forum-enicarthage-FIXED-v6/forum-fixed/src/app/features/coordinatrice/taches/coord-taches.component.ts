@@ -35,7 +35,6 @@ export class CoordTachesComponent implements OnInit {
       dateDebut:   ['', Validators.required],
       dateFin:     ['', Validators.required],
       priorite:    ['NORMALE'],
-      statut:      ['A_FAIRE'],
       comiteId:    [null, Validators.required],
       membreId:    [null],
     });
@@ -46,14 +45,14 @@ export class CoordTachesComponent implements OnInit {
   load(): void {
     this.loading = true;
     this.http.get<Tache[]>(this.apiTaches).subscribe({
-      next: t => { this.taches = t; this.loading = false; },
+      next: t  => { this.taches = t; this.loading = false; },
       error: () => { this.taches = []; this.loading = false; }
     });
   }
 
   loadComites(): void {
     this.http.get<any[]>(this.apiComite).subscribe({
-      next: c => this.comites = c,
+      next: c  => this.comites = c,
       error: () => {}
     });
   }
@@ -71,8 +70,9 @@ export class CoordTachesComponent implements OnInit {
   get filtered(): Tache[] {
     return this.taches.filter(t =>
       (this.filterStatut === 'TOUS' || t.statut === this.filterStatut) &&
-      (this.filterComite === 'TOUS' || (t as any).comite?.nom === this.filterComite ||
-       t.comiteNom === this.filterComite)
+      (this.filterComite === 'TOUS' ||
+        (t as any).comite?.nom === this.filterComite ||
+        t.comiteNom === this.filterComite)
     );
   }
 
@@ -87,18 +87,21 @@ export class CoordTachesComponent implements OnInit {
 
   openCreate(): void {
     this.editMode = false; this.editId = null; this.errorMsg = '';
-    this.form.reset({ priorite: 'NORMALE', statut: 'A_FAIRE' });
+    this.form.reset({ priorite: 'NORMALE' });
     this.showModal = true;
   }
 
+  // Coordinatrice peut réassigner membre et changer priorité uniquement
   openEdit(t: Tache): void {
     this.editMode = true; this.editId = t.id; this.errorMsg = '';
     this.form.patchValue({
-      titre: t.titre, description: t.description,
-      dateDebut: t.dateDebut, dateFin: t.dateFin,
-      priorite: t.priorite, statut: t.statut,
-      comiteId: (t as any).comite?.id || t.comiteId,
-      membreId: (t as any).membre?.id || t.membreId
+      titre:       t.titre,
+      description: t.description,
+      dateDebut:   t.dateDebut,
+      dateFin:     t.dateFin,
+      priorite:    t.priorite,
+      comiteId:    (t as any).comite?.id || t.comiteId,
+      membreId:    (t as any).membre?.id || t.membreId,
     });
     this.showModal = true;
   }
@@ -106,7 +109,6 @@ export class CoordTachesComponent implements OnInit {
   save(): void {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     this.saving = true; this.errorMsg = '';
-
     const val = this.form.value;
     const body = {
       titre:       val.titre,
@@ -114,27 +116,25 @@ export class CoordTachesComponent implements OnInit {
       dateDebut:   val.dateDebut,
       dateFin:     val.dateFin,
       priorite:    val.priorite,
-      statut:      val.statut,
       comiteId:    val.comiteId,
       membreId:    val.membreId || null,
     };
-
     const req = this.editMode && this.editId
       ? this.http.put<any>(`${this.apiTaches}/${this.editId}`, body)
       : this.http.post<any>(this.apiTaches, body);
 
     req.subscribe({
       next: () => { this.showModal = false; this.saving = false; this.load(); },
-      error: e => { this.errorMsg = e.error?.message || `Erreur ${e.status}`; this.saving = false; }
+      error: e  => { this.errorMsg = e.error?.message || `Erreur ${e.status}`; this.saving = false; }
     });
   }
 
-  changerStatut(t: Tache, statut: string): void {
-    this.http.put<any>(`${this.apiTaches}/${t.id}/statut`, null, {
-      params: { statut }
-    }).subscribe({
-      next: () => t.statut = statut as any,
-      error: () => t.statut = statut as any
+  // Coordinatrice peut marquer urgente uniquement
+  marquerUrgente(t: Tache): void {
+    const newPriorite = t.priorite === 'URGENTE' ? 'NORMALE' : 'URGENTE';
+    this.http.put<any>(`${this.apiTaches}/${t.id}`, { ...t, priorite: newPriorite }).subscribe({
+      next: () => t.priorite = newPriorite as any,
+      error: () => {}
     });
   }
 

@@ -1,4 +1,4 @@
-<!-- src/app/features/chef-comite/taches/chef-taches.component.html -->
+<!-- chef-taches.component.html -->
 <app-layout title="Tâches du Comité" subtitle="Créer, assigner et suivre les tâches de mon comité">
 
   <div class="toolbar">
@@ -15,7 +15,6 @@
 
   <div class="loading-state" *ngIf="loading">Chargement...</div>
 
-  <!-- Kanban-style cards -->
   <div class="taches-grid" *ngIf="!loading">
     <div class="tache-card" *ngFor="let t of filtered"
          [class.urgente]="t.priorite === 'URGENTE'"
@@ -42,15 +41,11 @@
         </span>
       </div>
 
+      <!-- Statut en lecture seule — seul le membre peut le changer -->
       <div class="tc-footer">
         <app-statut-badge [statut]="t.statut"></app-statut-badge>
-        <select class="statut-mini" [value]="t.statut"
-                (change)="changerStatut(t, $any($event.target).value)">
-          <option value="A_FAIRE">À faire</option>
-          <option value="EN_COURS">En cours</option>
-          <option value="TERMINEE">Terminée</option>
-        </select>
       </div>
+
     </div>
 
     <div class="empty-grid" *ngIf="filtered.length === 0">
@@ -58,7 +53,7 @@
     </div>
   </div>
 
-  <!-- Modal -->
+  <!-- Modal Créer/Modifier -->
   <div class="modal-overlay" *ngIf="showModal" (click)="showModal = false">
     <div class="modal" (click)="$event.stopPropagation()">
       <div class="modal-hd">
@@ -68,15 +63,18 @@
       <form [formGroup]="form" (ngSubmit)="save()">
         <div class="modal-body">
           <div class="alert-error" *ngIf="errorMsg">⚠ {{ errorMsg }}</div>
+
           <div class="field" [class.error]="f['titre'].touched && f['titre'].invalid">
             <label>Titre *</label>
             <input type="text" formControlName="titre" placeholder="Intitulé de la tâche">
             <span class="field-error" *ngIf="f['titre'].touched && f['titre'].invalid">Requis</span>
           </div>
+
           <div class="field">
             <label>Description</label>
             <textarea formControlName="description" rows="2" placeholder="Détails..."></textarea>
           </div>
+
           <div class="form-row">
             <div class="field">
               <label>Date début *</label>
@@ -87,6 +85,7 @@
               <input type="date" formControlName="dateFin">
             </div>
           </div>
+
           <div class="form-row">
             <div class="field">
               <label>Priorité</label>

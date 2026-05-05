@@ -1,0 +1,83 @@
+<!-- coord-comites.component.html -->
+<app-layout title="Comités" subtitle="Vue transverse — lecture seule">
+
+  <div class="loading-state" *ngIf="loading">Chargement des comités...</div>
+
+  <div class="comites-grid" *ngIf="!loading">
+
+    <div class="comite-card" *ngFor="let c of comites"
+         [class.selected]="selectedComite?.id === c.id"
+         (click)="selectComite(c)">
+
+      <div class="cc-header">
+        <div class="cc-icon">{{ comiteIcon(c.nom) }}</div>
+        <div class="cc-info">
+          <h3 class="cc-nom">{{ c.nom }}</h3>
+          <p class="cc-desc">{{ c.description || 'Aucune description' }}</p>
+        </div>
+      </div>
+
+      <div class="cc-chef" *ngIf="c.chef">
+        <div class="chef-av">{{ c.chef.nom[0] }}</div>
+        <div>
+          <div class="chef-nom">{{ c.chef.nom }}</div>
+          <div class="chef-role">Chef de comité</div>
+        </div>
+      </div>
+      <div class="cc-chef no-chef" *ngIf="!c.chef">
+        <span>👤 Aucun chef assigné</span>
+      </div>
+
+      <!-- Barre d'avancement -->
+      <div class="cc-progress">
+        <div class="progress-header">
+          <span class="progress-label">Avancement</span>
+          <span class="progress-pct" [class]="avancementClass(avancement(c))">{{ avancement(c) }}%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" [class]="avancementClass(avancement(c))"
+               [style.width.%]="avancement(c)"></div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="cc-stats">
+        <div class="cc-stat">
+          <span class="stat-val">{{ c.membres?.length || 0 }}</span>
+          <span class="stat-lbl">Membres</span>
+        </div>
+        <div class="cc-stat">
+          <span class="stat-val">{{ c.nombreTaches || 0 }}</span>
+          <span class="stat-lbl">Tâches</span>
+        </div>
+      </div>
+
+      <div class="cc-readonly-badge">👁 Lecture seule</div>
+    </div>
+
+    <div class="empty-state" *ngIf="comites.length === 0">
+      Aucun comité trouvé.
+    </div>
+  </div>
+
+  <!-- Détail comité sélectionné -->
+  <div class="comite-detail" *ngIf="selectedComite">
+    <div class="detail-hd">
+      <h3>{{ comiteIcon(selectedComite.nom) }} {{ selectedComite.nom }} — Membres</h3>
+      <button class="close-btn" (click)="selectedComite = null">✕</button>
+    </div>
+    <div class="membres-list">
+      <div class="membre-row" *ngFor="let m of selectedComite.membres">
+        <div class="membre-av-lg">{{ m.nom[0] }}</div>
+        <div>
+          <div class="membre-nom">{{ m.nom }}</div>
+          <div class="membre-email">{{ m.email }}</div>
+        </div>
+      </div>
+      <div class="no-membres" *ngIf="!selectedComite.membres?.length">
+        Aucun membre dans ce comité.
+      </div>
+    </div>
+  </div>
+
+</app-layout>

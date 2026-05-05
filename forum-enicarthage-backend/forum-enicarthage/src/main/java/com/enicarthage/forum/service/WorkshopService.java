@@ -2,6 +2,7 @@ package com.enicarthage.forum.service;
 
 import com.enicarthage.forum.exception.ResourceNotFoundException;
 import com.enicarthage.forum.model.*;
+import com.enicarthage.forum.repository.UtilisateurRepository;
 import com.enicarthage.forum.repository.WorkshopRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -18,13 +19,29 @@ public class WorkshopService {
 
     private final WorkshopRepository workshopRepository;
     private final ForumEditionGuard forumEditionGuard;
+    private final UtilisateurRepository utilisateurRepository;
 
-    public Workshop proposer(Workshop workshop) {
+    // Tous les workshops (coordinatrice/admin)
+    public List<Workshop> findAll() {
+        return workshopRepository.findAll();
+    }
+
+    // Workshops du comité dont l'email est chef
+    public List<Workshop> findByChef(String email) {
+        return workshopRepository.findByComiteChefEmail(email);
+    }
+
+    // Proposer — enregistre aussi proposePar
+    public Workshop proposer(Workshop workshop, String email) {
         if (workshop.getComite() == null || workshop.getComite().getId() == null) {
             throw new IllegalArgumentException("Comite organisateur obligatoire");
         }
         forumEditionGuard.assertForumOuvert(workshop.getComite().getId());
         workshop.setStatut(StatutWorkshop.PROPOSE);
+
+        // Enregistrer qui a proposé
+        utilisateurRepository.findByEmail(email).ifPresent(workshop::setProposePar);
+
         return workshopRepository.save(workshop);
     }
 
@@ -47,10 +64,6 @@ public class WorkshopService {
         }
         log.info("Workshop refuse : {}", w.getTitre());
         return workshopRepository.save(w);
-    }
-
-    public List<Workshop> findAll() {
-        return workshopRepository.findAll();
     }
 
     public Workshop findById(Long id) {

@@ -43,7 +43,7 @@ public class Tache {
     private Utilisateur membre;
 
     // ← AJOUTER
-    @OneToMany(mappedBy = "tache", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "tache", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnoreProperties({"tache", "hibernateLazyInitializer"})
     @Builder.Default
     private List<Commentaire> commentaires = new ArrayList<>();

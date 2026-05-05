@@ -39,7 +39,6 @@ export class ChefTachesComponent implements OnInit {
       dateDebut:   ['', Validators.required],
       dateFin:     ['', Validators.required],
       priorite:    ['NORMALE'],
-      statut:      ['A_FAIRE'],
       membreId:    [null],
     });
   }
@@ -49,7 +48,6 @@ export class ChefTachesComponent implements OnInit {
     this.comiteService.getMonComite().subscribe({
       next: c => {
         this.comiteId = c.id ?? null;
-        // ← Charger les membres directement depuis le comité
         this.membres = (c.membres as any[]) ?? [];
         this.loadTaches();
       },
@@ -65,7 +63,7 @@ export class ChefTachesComponent implements OnInit {
     this.http.get<Tache[]>(this.apiTaches, {
       params: { comiteId: this.comiteId.toString() }
     }).subscribe({
-      next: t => { this.taches = t; this.loading = false; },
+      next: t  => { this.taches = t; this.loading = false; },
       error: () => { this.taches = []; this.loading = false; }
     });
   }
@@ -82,17 +80,21 @@ export class ChefTachesComponent implements OnInit {
 
   openCreate(): void {
     this.editMode = false; this.editId = null; this.errorMsg = '';
-    this.form.reset({ priorite: 'NORMALE', statut: 'A_FAIRE' });
+    this.form.reset({ priorite: 'NORMALE' });
     this.showModal = true;
   }
 
+  // Chef peut modifier titre, description, dates, priorité, membre assigné
+  // Ne peut PAS changer le statut
   openEdit(t: Tache): void {
     this.editMode = true; this.editId = t.id; this.errorMsg = '';
     this.form.patchValue({
-      titre: t.titre, description: t.description,
-      dateDebut: t.dateDebut, dateFin: t.dateFin,
-      priorite: t.priorite, statut: t.statut,
-      membreId: t.membreId
+      titre:       t.titre,
+      description: t.description,
+      dateDebut:   t.dateDebut,
+      dateFin:     t.dateFin,
+      priorite:    t.priorite,
+      membreId:    t.membreId,
     });
     this.showModal = true;
   }
@@ -107,43 +109,35 @@ export class ChefTachesComponent implements OnInit {
       dateDebut:   val.dateDebut,
       dateFin:     val.dateFin,
       priorite:    val.priorite,
-      statut:      val.statut,
       comiteId:    this.comiteId,
       membreId:    val.membreId || null,
+      // statut non envoyé — le backend conserve le statut existant
     };
     const req = this.editMode && this.editId
       ? this.http.put<any>(`${this.apiTaches}/${this.editId}`, body)
       : this.http.post<any>(this.apiTaches, body);
+
     req.subscribe({
       next: () => { this.showModal = false; this.saving = false; this.loadTaches(); },
-      error: e => { this.errorMsg = e.error?.message || `Erreur ${e.status}`; this.saving = false; }
-    });
-  }
-
-  changerStatut(t: Tache, statut: string): void {
-    this.http.put<any>(`${this.apiTaches}/${t.id}/statut`, null, {
-      params: { statut }
-    }).subscribe({
-      next: () => t.statut = statut as any,
-      error: () => t.statut = statut as any
+      error: e  => { this.errorMsg = e.error?.message || `Erreur ${e.status}`; this.saving = false; }
     });
   }
 
   confirmDel(id: number): void {
-    this.deleteId = id;       // ← stocker l'id D'ABORD
-    this.confirmDelete = true; // ← puis ouvrir le modal
+    this.deleteId = id;
+    this.confirmDelete = true;
   }
 
   doDelete(): void {
-    if (this.deleteId == null) return;  // ← garde
-    const id = this.deleteId;           // ← copie locale
+    if (this.deleteId == null) return;
+    const id = this.deleteId;
     this.http.delete(`${this.apiTaches}/${id}`).subscribe({
       next: () => {
         this.confirmDelete = false;
         this.deleteId = null;
         this.loadTaches();
       },
-      error: (e) => {
+      error: e => {
         this.errorMsg = e.error?.message || `Erreur suppression ${e.status}`;
         this.confirmDelete = false;
         this.deleteId = null;

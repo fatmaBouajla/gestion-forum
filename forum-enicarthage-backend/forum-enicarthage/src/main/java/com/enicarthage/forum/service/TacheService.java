@@ -1,6 +1,7 @@
 package com.enicarthage.forum.service;
 
 import com.enicarthage.forum.dto.TacheDTO;
+import com.enicarthage.forum.dto.TacheResponseDTO;
 import com.enicarthage.forum.exception.ResourceNotFoundException;
 import com.enicarthage.forum.model.*;
 import com.enicarthage.forum.repository.*;
@@ -27,6 +28,26 @@ public class TacheService {
     private final NotificationService notificationService;
     private final ForumEditionGuard forumEditionGuard;
     private final TacheAuthorizationHelper tacheAuthorizationHelper;
+
+    public TacheResponseDTO toDTO(Tache t) {
+        TacheResponseDTO dto = new TacheResponseDTO();
+        dto.setId(t.getId());
+        dto.setTitre(t.getTitre());
+        dto.setDescription(t.getDescription());
+        dto.setDateDebut(t.getDateDebut());
+        dto.setDateFin(t.getDateFin());
+        dto.setPriorite(t.getPriorite());
+        dto.setStatut(t.getStatut());
+        if (t.getComite() != null) {
+            dto.setComiteId(t.getComite().getId());
+            dto.setComiteNom(t.getComite().getNom());
+        }
+        if (t.getMembre() != null) {
+            dto.setMembreId(t.getMembre().getId());
+            dto.setMembreNom(t.getMembre().getNom());
+        }
+        return dto;
+    }
 
     public boolean peutAccederTache(Utilisateur u, Tache t) {
         return tacheAuthorizationHelper.peutAccederTache(u, t);
@@ -99,21 +120,31 @@ public class TacheService {
         return tacheRepository.save(tache);
     }
 
+    /**
+     * Changement de statut — appelé uniquement par le MEMBRE.
+     * On évite assertTacheOuverte() qui charge trop d'entités et cause le 500.
+     * La vérification d'autorisation suffit.
+     */
     public Tache changerStatut(Long id, StatutTache statut, String actorEmail) {
         Tache tache = tacheRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Tache non trouvee"));
+
         Utilisateur actor = utilisateurRepository.findByEmail(actorEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("Utilisateur introuvable"));
+
+        // Vérification autorisation — membre doit être assigné à cette tâche
         if (!tacheAuthorizationHelper.peutAccederTache(actor, tache)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Changement de statut refuse");
         }
-        forumEditionGuard.assertTacheOuverte(id);
 
-        // ← UPDATE direct sans sérialisation de l'entité complète
+        // UPDATE direct en base — pas de chargement d'entités supplémentaires
         tacheRepository.updateStatut(id, statut);
         tache.setStatut(statut);
+
+        log.info("Statut tache {} change en {} par {}", id, statut, actorEmail);
         return tache;
     }
+    
 
     public List<Tache> listerPourUtilisateur(String email, StatutTache filtreStatut) {
         Utilisateur u = utilisateurRepository.findByEmail(email)

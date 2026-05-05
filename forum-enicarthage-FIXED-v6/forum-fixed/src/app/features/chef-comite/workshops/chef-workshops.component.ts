@@ -4,11 +4,11 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 
 @Component({
-  selector: 'app-coord-workshops',
-  templateUrl: './coord-workshops.component.html',
-  styleUrls: ['./coord-workshops.component.scss'],
+  selector: 'app-chef-workshops',
+  templateUrl: './chef-workshops.component.html',
+  styleUrls: ['./chef-workshops.component.scss'],  // réutiliser le même scss que coord
 })
-export class CoordWorkshopsComponent implements OnInit {
+export class ChefWorkshopsComponent implements OnInit {
   workshops: any[] = [];
   comites: any[] = [];
   loading = false;
@@ -18,14 +18,12 @@ export class CoordWorkshopsComponent implements OnInit {
   showModal = false;
   editMode = false;
   editId: number | null = null;
-  showRefuserModal = false;
-  refuserId: number | null = null;
-  form: FormGroup;
-  refuserForm: FormGroup;
   filters = ['TOUS', 'PROPOSE', 'VALIDE', 'REFUSE'];
 
   private apiWS     = `${environment.apiUrl}/workshops`;
   private apiComite = `${environment.apiUrl}/comites`;
+
+  form: FormGroup;
 
   constructor(private fb: FormBuilder, private http: HttpClient) {
     this.form = this.fb.group({
@@ -35,26 +33,26 @@ export class CoordWorkshopsComponent implements OnInit {
       dateHeure:   ['', Validators.required],
       comiteId:    [null, Validators.required],
     });
-
-    this.refuserForm = this.fb.group({
-      commentaire: ['', Validators.required],
-    });
   }
 
-  ngOnInit(): void { this.load(); this.loadComites(); }
+  ngOnInit(): void {
+    this.load();
+    this.loadComites();
+  }
 
+  // Chef ne voit que ses workshops (filtrés côté backend par son comité)
   load(): void {
     this.loading = true;
-    // La coordinatrice voit TOUS les workshops
-    this.http.get<any[]>(this.apiWS).subscribe({
+    this.http.get<any[]>(`${this.apiWS}/mes-workshops`).subscribe({
       next: w  => { this.workshops = w; this.loading = false; },
       error: () => { this.workshops = []; this.loading = false; }
     });
   }
 
   loadComites(): void {
-    this.http.get<any[]>(this.apiComite).subscribe({
-      next: c  => this.comites = c,
+    // Le chef ne voit que son comité
+    this.http.get<any>(`${this.apiComite}/mon-comite`).subscribe({
+      next: c  => { this.comites = [c]; this.form.patchValue({ comiteId: c.id }); },
       error: () => {}
     });
   }
@@ -72,24 +70,35 @@ export class CoordWorkshopsComponent implements OnInit {
   }
 
   openCreate(): void {
-    this.editMode = false; this.editId = null; this.errorMsg = '';
-    this.form.reset();
+    this.editMode = false;
+    this.editId = null;
+    this.errorMsg = '';
+    // Pré-remplir le comité du chef (un seul comité disponible)
+    const comiteId = this.comites[0]?.id ?? null;
+    this.form.reset({ comiteId });
     this.showModal = true;
   }
 
+  // Le chef peut modifier UNIQUEMENT ses workshops encore à l'état PROPOSE
   openEdit(w: any): void {
-    this.editMode = true; this.editId = w.id; this.errorMsg = '';
+    if (w.statut !== 'PROPOSE') return; // sécurité UI
+    this.editMode = true;
+    this.editId = w.id;
+    this.errorMsg = '';
     this.form.patchValue({
-      titre: w.titre, description: w.description, intervenant: w.intervenant,
-      dateHeure: w.dateHeure?.substring(0, 16),
-      comiteId: w.comite?.id
+      titre:       w.titre,
+      description: w.description,
+      intervenant: w.intervenant,
+      dateHeure:   w.dateHeure?.substring(0, 16),
+      comiteId:    w.comite?.id,
     });
     this.showModal = true;
   }
 
   save(): void {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
-    this.saving = true; this.errorMsg = '';
+    this.saving = true;
+    this.errorMsg = '';
 
     const val = this.form.value;
     const body: any = {
@@ -111,51 +120,9 @@ export class CoordWorkshopsComponent implements OnInit {
     });
   }
 
-  valider(id: number): void {
-    this.http.put<any>(`${this.apiWS}/${id}/valider`, {}).subscribe({
-      next: () => {
-        const w = this.workshops.find(x => x.id === id);
-        if (w) w.statut = 'VALIDE';
-      },
-      error: e => alert('Erreur: ' + (e.error?.message || e.status))
-    });
-  }
-
-  openRefuser(id: number): void {
-    this.refuserId = id;
-    this.refuserForm.reset();
-    this.showRefuserModal = true;
-  }
-
-  // CORRECTION : on envoie le commentaire en query param comme le backend l'attend
-  doRefuser(): void {
-    if (this.refuserForm.invalid) { this.refuserForm.markAllAsTouched(); return; }
-
-    const commentaire = this.refuserForm.value.commentaire;
-
-    this.http.put<any>(
-      `${this.apiWS}/${this.refuserId}/refuser`,
-      null,
-      { params: { commentaire } }   // ← correction : body null, commentaire en param
-    ).subscribe({
-      next: () => {
-        const w = this.workshops.find(x => x.id === this.refuserId);
-        if (w) {
-          w.statut = 'REFUSE';
-          w.motifRefus = commentaire;  // affiche le motif immédiatement sans rechargement
-        }
-        this.showRefuserModal = false;
-      },
-      error: e => {
-        alert('Erreur: ' + (e.error?.message || e.status));
-      }
-    });
-  }
-
   statutIcon(s: string): string {
     return ({ PROPOSE: '🟡', VALIDE: '🟢', REFUSE: '🔴' } as any)[s] ?? '';
   }
 
-  get f()  { return this.form.controls; }
-  get rf() { return this.refuserForm.controls; }
+  get f() { return this.form.controls; }
 }

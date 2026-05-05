@@ -1,0 +1,46 @@
+<!-- coord-planning.component.html -->
+<app-layout title="Planning des Événements" subtitle="Calendrier des workshops et conférences validés">
+
+  <div class="loading-state" *ngIf="loading">Chargement du planning...</div>
+
+  <div class="empty-state" *ngIf="!loading && workshops.length === 0">
+    <div class="empty-icon">📅</div>
+    <h3>Aucun événement planifié</h3>
+    <p>Les workshops validés apparaîtront ici. Validez des workshops depuis l'espace Workshops.</p>
+  </div>
+
+  <div class="planning-timeline" *ngIf="!loading && workshops.length > 0">
+
+    <div class="day-group" *ngFor="let group of groupedByDate">
+      <div class="day-header">
+        <div class="day-line"></div>
+        <div class="day-label">{{ group.date }}</div>
+        <div class="day-line"></div>
+      </div>
+
+      <div class="events-list">
+        <div class="event-card" *ngFor="let w of group.items">
+          <div class="event-time">
+            <div class="time-val">{{ heure(w.dateHeure) }}</div>
+            <div class="time-dot"></div>
+          </div>
+          <div class="event-body">
+            <div class="event-header">
+              <div>
+                <h3 class="event-titre">{{ w.titre }}</h3>
+                <p class="event-desc">{{ w.description }}</p>
+              </div>
+              <span class="event-badge">✅ Validé</span>
+            </div>
+            <div class="event-meta">
+              <span class="meta-item">👤 {{ w.intervenant }}</span>
+              <span class="meta-item" *ngIf="comiteNom(w) !== '—'">📋 {{ comiteNom(w) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</app-layout>

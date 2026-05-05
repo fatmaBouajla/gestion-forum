@@ -1,0 +1,123 @@
+<!-- chef-workshops.component.html -->
+<app-layout title="Mes Workshops & Conférences" subtitle="Proposez et suivez vos workshops">
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="filter-tabs">
+      <button class="tab-btn" *ngFor="let f of filters"
+              [class.active]="filter === f"
+              (click)="filter = f">
+        <span *ngIf="f !== 'TOUS'">{{ statutIcon(f) }}</span>
+        {{ f === 'TOUS' ? 'Tous' : (f | statut) }}
+        <span class="tab-count">{{ statutCount(f) }}</span>
+      </button>
+    </div>
+    <!-- Le chef peut proposer -->
+    <button class="btn btn-primary" (click)="openCreate()">+ Proposer un workshop</button>
+  </div>
+
+  <div class="loading-state" *ngIf="loading">Chargement...</div>
+
+  <div class="workshops-list" *ngIf="!loading">
+    <div class="workshop-card" *ngFor="let w of filtered" [ngClass]="w.statut.toLowerCase()">
+      <div class="ws-left">
+        <div class="ws-icon">🎓</div>
+        <div class="ws-statut-line"></div>
+      </div>
+
+      <div class="ws-body">
+        <div class="ws-top">
+          <div>
+            <h3 class="ws-titre">{{ w.titre }}</h3>
+            <p class="ws-desc">{{ w.description }}</p>
+          </div>
+          <app-statut-badge [statut]="w.statut"></app-statut-badge>
+        </div>
+
+        <div class="ws-meta">
+          <span class="ws-meta-item">👤 {{ w.intervenant }}</span>
+          <span class="ws-meta-item">📅 {{ w.dateHeure | date:'dd/MM/yyyy à HH:mm' }}</span>
+          <span class="ws-meta-item" *ngIf="w.comite?.nom">📋 {{ w.comite.nom }}</span>
+        </div>
+
+        <!-- Actions : le chef peut modifier/supprimer SEULEMENT si encore PROPOSE -->
+        <div class="ws-actions" *ngIf="w.statut === 'PROPOSE'">
+          <button class="btn btn-outline btn-sm" (click)="openEdit(w)">✏ Modifier</button>
+        </div>
+
+        <!-- Messages de statut final (pas de boutons valider/refuser pour le chef) -->
+        <div class="ws-actions" *ngIf="w.statut !== 'PROPOSE'">
+          <span class="ws-final-label" *ngIf="w.statut === 'VALIDE'">
+            ✅ Workshop confirmé au programme
+          </span>
+          <span class="ws-final-label refused" *ngIf="w.statut === 'REFUSE'">
+            ❌ Refusé par la coordinatrice
+            <span *ngIf="w.motifRefus" class="ws-motif"> — {{ w.motifRefus }}</span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="filtered.length === 0">
+      Aucun workshop pour ce filtre.
+    </div>
+  </div>
+
+  <!-- Modal Proposer / Modifier -->
+  <div class="modal-overlay" *ngIf="showModal" (click)="showModal = false">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-hd">
+        <h3>{{ editMode ? 'Modifier' : 'Proposer' }} un workshop</h3>
+        <button class="modal-close" (click)="showModal = false">✕</button>
+      </div>
+      <form [formGroup]="form" (ngSubmit)="save()">
+        <div class="modal-body">
+
+          <div class="field" [class.error]="f['titre'].touched && f['titre'].invalid">
+            <label>Titre *</label>
+            <input type="text" formControlName="titre" placeholder="Titre du workshop">
+            <span class="field-error" *ngIf="f['titre'].touched && f['titre'].invalid">Requis</span>
+          </div>
+
+          <div class="field" [class.error]="f['description'].touched && f['description'].invalid">
+            <label>Description *</label>
+            <textarea formControlName="description" rows="3" placeholder="Décrivez le contenu..."></textarea>
+            <span class="field-error" *ngIf="f['description'].touched && f['description'].invalid">Requis</span>
+          </div>
+
+          <div class="field" [class.error]="f['intervenant'].touched && f['intervenant'].invalid">
+            <label>Intervenant *</label>
+            <input type="text" formControlName="intervenant" placeholder="Nom de l'intervenant">
+            <span class="field-error" *ngIf="f['intervenant'].touched && f['intervenant'].invalid">Requis</span>
+          </div>
+
+          <div class="form-row">
+            <div class="field" [class.error]="f['dateHeure'].touched && f['dateHeure'].invalid">
+              <label>Date et heure *</label>
+              <input type="datetime-local" formControlName="dateHeure">
+              <span class="field-error" *ngIf="f['dateHeure'].touched && f['dateHeure'].invalid">Requis</span>
+            </div>
+
+            <!-- Comité pré-rempli et désactivé pour le chef -->
+            <div class="field">
+              <label>Comité organisateur</label>
+              <select formControlName="comiteId" [disabled]="comites.length === 1">
+                <option *ngFor="let c of comites" [value]="c.id">{{ c.nom }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="error-msg" *ngIf="errorMsg">{{ errorMsg }}</div>
+        </div>
+
+        <div class="modal-ft">
+          <button type="button" class="btn btn-outline" (click)="showModal = false">Annuler</button>
+          <button type="submit" class="btn btn-primary" [disabled]="saving">
+            {{ saving ? 'En cours...' : (editMode ? 'Sauvegarder' : 'Proposer') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</app-layout>

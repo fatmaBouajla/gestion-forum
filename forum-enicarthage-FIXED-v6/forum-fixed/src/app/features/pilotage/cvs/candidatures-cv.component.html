@@ -1,8 +1,7 @@
 <app-layout title="Candidatures CV" subtitle="Analyse et validation des candidatures avec module IA">
 
   <div class="filter-tabs">
-    <button class="tab-btn" *ngFor="let f of filters"
-            [class.active]="filter === f" (click)="filter = f">
+    <button class="tab-btn" *ngFor="let f of filters" [class.active]="filter === f" (click)="filter = f">
       {{ f === 'TOUS' ? 'Tous' : (f | statut) }}
       <span class="tab-count">{{ statutCount(f) }}</span>
     </button>
@@ -34,13 +33,13 @@
       <div class="cv-actions">
         <button class="btn-icon info" (click)="openDetail(c)" title="Voir détails">👁</button>
         <button class="btn-icon ia" (click)="analyserIA(c)" title="Analyser avec IA"
-                [class.loading]="analysing === c.id">
+          [class.loading]="analysing === c.id">
           {{ analysing === c.id ? '⏳' : '🤖' }}
         </button>
         <button class="btn-icon accept" (click)="accepter(c)" title="Accepter"
-                *ngIf="c.statut === 'EN_ATTENTE'">✅</button>
+          *ngIf="c.statut === 'EN_ATTENTE'">✅</button>
         <button class="btn-icon reject" (click)="openRefuser(c.id)" title="Refuser"
-                *ngIf="c.statut === 'EN_ATTENTE'">❌</button>
+          *ngIf="c.statut === 'EN_ATTENTE'">❌</button>
       </div>
     </div>
 
@@ -94,8 +93,7 @@
           📋 Dossier complet
         </div>
 
-        <div class="detail-row"
-             *ngFor="let item of selectedDossierParsed">
+        <div class="detail-row" *ngFor="let item of selectedDossierParsed">
           <span class="dlabel">{{ item.label }}</span>
           <span>{{ item.value }}</span>
         </div>
@@ -164,11 +162,9 @@
         <div class="modal-body">
           <div class="field">
             <label>Commentaire *</label>
-            <textarea formControlName="commentaire" rows="4"
-                      placeholder="Expliquez le motif du refus..."></textarea>
+            <textarea formControlName="commentaire" rows="4" placeholder="Expliquez le motif du refus..."></textarea>
 
-            <span class="field-error"
-                  *ngIf="f['commentaire'].touched && f['commentaire'].invalid">
+            <span class="field-error" *ngIf="f['commentaire'].touched && f['commentaire'].invalid">
               Commentaire requis
             </span>
           </div>

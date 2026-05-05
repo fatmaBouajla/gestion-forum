@@ -47,6 +47,7 @@ export class SidebarComponent implements OnInit {
       { label: 'Mon Comité',      icon: '👥',  route: '/chef-comite/comite' },
       { label: 'Tâches',          icon: '✅',  route: '/chef-comite/taches' },
       { label: 'Membres',         icon: '👤',  route: '/chef-comite/membres' },
+      { label: 'Workshops',       icon: '🎓',  route: '/chef-comite/workshops' },  // ← ajouté
     ],
     MEMBRE: [
       { label: 'Dashboard',       icon: '⊞',  route: '/membre/dashboard' },
